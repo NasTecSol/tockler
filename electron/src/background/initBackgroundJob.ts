@@ -1,6 +1,7 @@
 import { dbClient } from '../drizzle/dbClient';
 import { logManager } from '../utils/log-manager';
 import { watchForBreakNotification, watchForBreakNotificationCleanup } from './watchBreak/watchForBreakNotification';
+import { watchHRIntegration, watchHRIntegrationCleanup } from './watchHR/watchHRIntegration';
 import { watchAndPropagateState, watchAndPropagateStateCleanup } from './watchStates/watchAndPropagateState';
 import { watchForIdleState, watchForIdleStateCleanup } from './watchStates/watchForIdleState';
 import { watchForPowerState, watchForPowerStateCleanup } from './watchStates/watchForPowerState';
@@ -29,6 +30,7 @@ export async function initBackgroundJob() {
     watchAndSetLogTrackItem();
 
     watchForBreakNotification();
+    await watchHRIntegration(backgroundJobInterval);
 }
 
 export async function cleanupBackgroundJob() {
@@ -43,4 +45,5 @@ export async function cleanupBackgroundJob() {
     await watchAndSetLogTrackItemCleanup();
 
     watchForBreakNotificationCleanup();
+    await watchHRIntegrationCleanup();
 }

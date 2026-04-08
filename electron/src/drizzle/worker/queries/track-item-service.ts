@@ -131,6 +131,14 @@ async function findAllDayItemsDb(from: string, to: string, taskName: string) {
     return data;
 }
 
+async function findTrackItemsInRange(from: number, to: number) {
+    return db
+        .select()
+        .from(trackItems)
+        .where(and(lte(trackItems.beginDate, to), gte(trackItems.endDate, from)))
+        .orderBy(asc(trackItems.beginDate));
+}
+
 async function findFirstChunkLogItemsDb() {
     const items = await db
         .select({
@@ -157,6 +165,10 @@ async function findFirstTrackItem() {
         .where(eq(trackItems.taskName, TrackItemType.AppTrackItem))
         .orderBy(trackItems.beginDate)
         .limit(1);
+}
+
+async function findFirstTrackItemForSync() {
+    return await db.select().from(trackItems).orderBy(asc(trackItems.beginDate)).limit(1);
 }
 
 async function findLastOnlineItem() {
@@ -226,8 +238,10 @@ export const trackItemService = {
     findItemsForExport,
     findAllItems,
     findAllDayItemsDb,
+    findTrackItemsInRange,
     findFirstChunkLogItemsDb,
     findFirstTrackItem,
+    findFirstTrackItemForSync,
     findLastOnlineItem,
     updateTrackItemColor,
     findById,

@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { defaultHRIntegrationState, HRIntegrationState } from '../../../hr/types';
 import { NewTrackItem, Setting, settings } from '../../schema';
 import { db } from '../db';
 
@@ -19,6 +20,7 @@ const defaultWorkSettings = {
 
 const RUNNING_LOG_ITEM = 'RUNNING_LOG_ITEM';
 const ANALYSER_ENABLED = 'ANALYSER_ENABLED';
+const HR_INTEGRATION_STATE = 'HR_INTEGRATION_STATE';
 const logger = console;
 
 const cache: Record<string, Setting | null> = {};
@@ -144,6 +146,32 @@ async function fetchAnalyserSettingsJsonString() {
     return JSON.stringify(jsonData);
 }
 
+async function fetchHRIntegrationState(): Promise<HRIntegrationState> {
+    const item = await findByName(HR_INTEGRATION_STATE);
+
+    if (!item || !item.jsonData) {
+        return defaultHRIntegrationState;
+    }
+
+    try {
+        const state = JSON.parse(item.jsonData);
+        return { ...defaultHRIntegrationState, ...state };
+    } catch (e) {
+        logger.error('Error parsing HR_INTEGRATION_STATE:', e);
+        return defaultHRIntegrationState;
+    }
+}
+
+async function fetchHRIntegrationStateJsonString() {
+    const state = await fetchHRIntegrationState();
+    return JSON.stringify(state);
+}
+
+async function saveHRIntegrationState(state: HRIntegrationState) {
+    const nextState = { ...defaultHRIntegrationState, ...state };
+    return updateByName(HR_INTEGRATION_STATE, JSON.stringify(nextState));
+}
+
 async function getAnalyserEnabled() {
     let item = await findByName(ANALYSER_ENABLED);
     if (!item || !item.jsonData) {
@@ -216,8 +244,11 @@ export const settingsService = {
     fetchDataSettingsJsonString,
     fetchAnalyserSettings,
     fetchAnalyserSettingsJsonString,
+    fetchHRIntegrationState,
+    fetchHRIntegrationStateJsonString,
     getAnalyserEnabled,
     setAnalyserEnabled,
+    saveHRIntegrationState,
     getRunningLogItemAsJson,
     saveRunningLogItemReference,
 };

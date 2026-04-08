@@ -4,6 +4,7 @@ import { AnalyserForm } from './AnalyserForm';
 import { AppForm } from './AppForm';
 import { AppVersion } from './AppVersion';
 import { DataForm } from './DataForm';
+import { HRForm } from './HRForm';
 import { WorkForm } from './WorkForm';
 
 export const SettingsForm = () => {
@@ -11,6 +12,7 @@ export const SettingsForm = () => {
         <VStack spacing={4} p={4} alignItems="flex-start" width="100%">
             <WorkForm />
             <DataForm />
+            <HRForm />
             <AppForm />
             <AnalyserForm />
 

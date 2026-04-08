@@ -9,6 +9,8 @@ import { initBackgroundJob } from './background/initBackgroundJob';
 import { dbClient } from './drizzle/dbClient';
 import { OrderByKey } from './drizzle/query.utils';
 import { TrackItem } from './drizzle/schema';
+import { hrIntegrationService } from './hr/hrService';
+import { HRLoginPayload } from './hr/types';
 import { setupMainHandler } from './utils/setupMainHandler';
 
 const settingsActions = {
@@ -61,6 +63,25 @@ const settingsActions = {
 const appSettingsActions = {
     changeColorForApp: async (payload: { appName: string; color: string }) => {
         return dbClient.changeColorForApp(payload.appName, payload.color);
+    },
+};
+
+const hrActions = {
+    getHRAuthStatus: async () => {
+        return hrIntegrationService.getAuthStatus();
+    },
+    getHRBackendConfig: async () => {
+        return hrIntegrationService.getBackendConfig();
+    },
+    loginToHRBackend: async (payload: HRLoginPayload) => {
+        return hrIntegrationService.login(payload);
+    },
+    logoutFromHRBackend: async () => {
+        return hrIntegrationService.logout();
+    },
+    syncActivitiesToHR: async () => {
+        await hrIntegrationService.syncNow();
+        return hrIntegrationService.getAuthStatus();
     },
 };
 
@@ -123,4 +144,8 @@ const trackItemActions = {
 };
 
 export const initIpcActions = () =>
-    setupMainHandler({ ipcMain } as any, { ...settingsActions, ...appSettingsActions, ...trackItemActions }, true);
+    setupMainHandler(
+        { ipcMain } as any,
+        { ...settingsActions, ...appSettingsActions, ...trackItemActions, ...hrActions },
+        true,
+    );

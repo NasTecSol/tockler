@@ -1,5 +1,6 @@
 import { ITrackItem } from '../@types/ITrackItem';
 import { Logger } from '../logger';
+import { HRAuthStatus, HRBackendConfig } from '../components/Settings/HRForm.util';
 import { ElectronEventEmitter } from './ElectronEventEmitter';
 
 // Use the Window interface extension from global declarations
@@ -164,4 +165,24 @@ export async function fetchAnalyserSettings() {
         Logger.error('fetchAnalyserSettings', jsonStr, e);
         return [];
     }
+}
+
+export async function getHRAuthStatus() {
+    return ElectronEventEmitter.emit<HRAuthStatus>('getHRAuthStatus');
+}
+
+export async function getHRBackendConfig() {
+    return ElectronEventEmitter.emit<HRBackendConfig>('getHRBackendConfig');
+}
+
+export async function loginToHRBackend(credentials: { username: string; password: string }) {
+    return ElectronEventEmitter.emit<HRAuthStatus>('loginToHRBackend', credentials);
+}
+
+export async function logoutFromHRBackend() {
+    return ElectronEventEmitter.emit<HRAuthStatus>('logoutFromHRBackend');
+}
+
+export async function syncActivitiesToHR() {
+    return ElectronEventEmitter.emit<HRAuthStatus>('syncActivitiesToHR');
 }
