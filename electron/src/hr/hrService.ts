@@ -80,7 +80,9 @@ export class HRIntegrationService {
     constructor(private readonly deps: HRServiceDeps) {}
 
     getBackendConfig(): HRBackendConfig {
-        const baseUrl = normalizeBackendUrl(this.deps.getBackendUrl());
+        const rawUrl = this.deps.getBackendUrl();
+        const baseUrl = normalizeBackendUrl(rawUrl);
+        logger.info('getBackendConfig', { rawUrl, baseUrl });
         return { baseUrl, configured: Boolean(baseUrl) };
     }
 
@@ -392,7 +394,7 @@ export class HRIntegrationService {
 export function createHRIntegrationService(overrides: Partial<HRServiceDeps> = {}) {
     const deps: HRServiceDeps = {
         fetchImpl: fetch,
-        getBackendUrl: () => normalizeBackendUrl(process.env.HR_BACKEND_URL || process.env.VITE_HR_BACKEND_URL || null),
+        getBackendUrl: () => normalizeBackendUrl((import.meta.env.VITE_HR_BACKEND_URL as string) || null),
         loadState: async () => dbClient.fetchHRIntegrationState(),
         saveState: async (state) => dbClient.saveHRIntegrationState(state),
         findTrackItemsInRange: async (from, to) => dbClient.findTrackItemsInRange(from, to),

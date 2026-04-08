@@ -13,7 +13,14 @@ interface ElectronBridge {
 
 // Get the electronBridge at call time, not at module load time
 const getElectronBridge = (): ElectronBridge => {
-    return (window as unknown as { electronBridge: ElectronBridge }).electronBridge;
+    return (
+        (window as unknown as { electronBridge: ElectronBridge }).electronBridge || {
+            invokeIpc: async () => ({} as any),
+            sendIpc: () => {},
+            onIpc: () => {},
+            removeListenerIpc: () => {},
+        }
+    );
 };
 
 function send(name: string, ...args: unknown[]): void {

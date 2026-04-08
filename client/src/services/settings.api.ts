@@ -4,8 +4,15 @@ import { HRAuthStatus, HRBackendConfig } from '../components/Settings/HRForm.uti
 import { ElectronEventEmitter } from './ElectronEventEmitter';
 
 // Use the Window interface extension from global declarations
-const { electronBridge } = window;
-const { configGet, configSet } = electronBridge;
+// Use the Window interface extension from global declarations
+const getBridge = () => (window as any).electronBridge || {
+    configGet: () => null,
+    configSet: () => {},
+};
+
+const configGet = (key: string) => getBridge().configGet(key);
+const configSet = (key: string, value: any) => getBridge().configSet(key, value);
+
 
 const THEME_CONFIG_KEY = 'selectedTheme';
 const IS_NATIVE_THEME_ENABLED = 'isNativeThemeEnabled';

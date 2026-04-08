@@ -109,8 +109,12 @@ export default class WindowManager {
     }
 
     static createMainWindow() {
-        logger.debug('Creating main window.');
-        logger.debug('Preload script path:', preloadScript);
+        logger.info('Creating main window.');
+        logger.info('Preload script path:', preloadScript);
+        
+        if (!require('fs').existsSync(preloadScript)) {
+            logger.error('CRITICAL: Preload script not found at path:', preloadScript);
+        }
 
         const hasWindowSize = config.persisted.has('windowsize');
         const windowSize = (config.persisted.get('windowsize') as WindowBounds) || { width: 1080, height: 720 };

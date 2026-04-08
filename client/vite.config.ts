@@ -6,6 +6,7 @@ import PluginObject from 'babel-plugin-react-compiler';
 
 // https://vite.dev/config/
 export default defineConfig({
+    envDir: '../',
     base: './',
     plugins: [[PluginObject], react()],
     server: {

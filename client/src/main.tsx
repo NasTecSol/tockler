@@ -7,7 +7,14 @@ import { MainRouter } from './MainRouter';
 import { theme } from './theme/theme';
 import { setAppParams } from './useGoogleAnalytics.utils';
 
+if (!(window as any).electronBridge) {
+    console.warn(
+        'Electron bridge not found. This app is designed to run in Electron. Features may be limited.',
+    );
+}
+
 setAppParams();
+
 
 // Set CSP settings for the window
 // @ts-expect-error - CSPSettings is not defined on Window type
