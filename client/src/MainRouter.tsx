@@ -14,6 +14,9 @@ import { TrayAppPage } from './routes/TrayAppPage';
 import { ElectronEventEmitter } from './services/ElectronEventEmitter';
 import { mainStore } from './store/mainStore';
 import { useGoogleAnalytics } from './useGoogleAnalytics';
+import { RootContext } from './RootContext';
+import { LoginOverlay } from './components/Login/LoginOverlay';
+import { useContext } from 'react';
 
 Settings.defaultLocale = 'en-GB';
 
@@ -40,38 +43,52 @@ export function MainRouter() {
     return (
         <ChartThemeProvider>
             <RootProvider>
-                <Routes>
-                    {/* Main App with main store */}
-                    <Route
-                        path="/app/*"
-                        element={
-                            <StoreProvider store={mainStore}>
-                                <MainAppPage />
-                            </StoreProvider>
-                        }
-                    />
-
-                    {/* Redirect from root to /app */}
-                    <Route path="/" element={<Navigate to="/app" replace />} />
-
-                    {/* Tray App - No longer needs trayStore */}
-                    <Route
-                        path="/trayApp"
-                        element={
-                            <TrayLayout>
-                                <ErrorBoundary>
-                                    <TrayAppPage />
-                                </ErrorBoundary>
-                            </TrayLayout>
-                        }
-                    />
-
-                    <Route path="/notificationApp" element={<NotificationAppPage />} />
-
-                    {/* Fallback redirect to /app */}
-                    <Route path="*" element={<Navigate to="/app" replace />} />
-                </Routes>
+                <MainRouterContent />
             </RootProvider>
         </ChartThemeProvider>
+    );
+}
+
+function MainRouterContent() {
+    const { hrAuthStatus } = useContext(RootContext);
+    console.log('[MainRouter] Render with status:', hrAuthStatus);
+
+    if (hrAuthStatus.configured && !hrAuthStatus.isAuthenticated) {
+        console.log('[MainRouter] Showing LoginOverlay');
+        return <LoginOverlay />;
+    }
+
+    return (
+        <Routes>
+            {/* Main App with main store */}
+            <Route
+                path="/app/*"
+                element={
+                    <StoreProvider store={mainStore}>
+                        <MainAppPage />
+                    </StoreProvider>
+                }
+            />
+
+            {/* Redirect from root to /app */}
+            <Route path="/" element={<Navigate to="/app" replace />} />
+
+            {/* Tray App - No longer needs trayStore */}
+            <Route
+                path="/trayApp"
+                element={
+                    <TrayLayout>
+                        <ErrorBoundary>
+                            <TrayAppPage />
+                        </ErrorBoundary>
+                    </TrayLayout>
+                }
+            />
+
+            <Route path="/notificationApp" element={<NotificationAppPage />} />
+
+            {/* Fallback redirect to /app */}
+            <Route path="*" element={<Navigate to="/app" replace />} />
+        </Routes>
     );
 }

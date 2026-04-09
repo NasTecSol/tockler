@@ -2,9 +2,10 @@ import { ReactNode, createContext, useCallback, useEffect, useState } from 'reac
 import { useNavigate } from 'react-router-dom';
 import { DataSettingsI } from './components/Settings/DataForm.util';
 import { WorkSettingsI } from './components/Settings/WorkForm.util';
+import { HRAuthStatus, defaultHRAuthStatus } from './components/Settings/HRForm.util';
 import { Logger } from './logger';
 import { ElectronEventEmitter } from './services/ElectronEventEmitter';
-import { fetchDataSettings, fetchWorkSettings, saveDataSettings, saveWorkSettings } from './services/settings.api';
+import { fetchDataSettings, fetchWorkSettings, getHRAuthStatus, saveDataSettings, saveWorkSettings } from './services/settings.api';
 
 const defaultWorkSettings: WorkSettingsI = {
     workDayStartTime: '08:30', // not used
@@ -28,6 +29,7 @@ interface RootContextType {
     updateWorkSettings: (settings: WorkSettingsI) => void;
     dataSettings: DataSettingsI;
     updateDataSettings: (settings: DataSettingsI) => void;
+    hrAuthStatus: HRAuthStatus;
 }
 
 export const RootContext = createContext<RootContextType>({
@@ -35,6 +37,7 @@ export const RootContext = createContext<RootContextType>({
     updateWorkSettings: () => {},
     dataSettings: defaultDataSettings,
     updateDataSettings: () => {},
+    hrAuthStatus: defaultHRAuthStatus,
 });
 
 interface RootProviderProps {
@@ -51,6 +54,7 @@ export const RootProvider = ({ children }: RootProviderProps) => {
 
     const [workSettings, setWorkSettings] = useState<WorkSettingsI>(defaultWorkSettings);
     const [dataSettings, setDataSettings] = useState<DataSettingsI>(defaultDataSettings);
+    const [hrAuthStatus, setHrAuthStatus] = useState<HRAuthStatus>(defaultHRAuthStatus);
 
     const updateWorkSettings = useCallback((newWorkSettings: WorkSettingsI) => {
         setWorkSettings(newWorkSettings);
@@ -73,6 +77,12 @@ export const RootProvider = ({ children }: RootProviderProps) => {
         if (newDataSettings) {
             setDataSettings(newDataSettings);
         }
+
+        const authStatus = await getHRAuthStatus();
+        console.log('[RootContext] Loaded HR Auth Status:', authStatus);
+        if (authStatus) {
+            setHrAuthStatus(authStatus);
+        }
     }, []);
 
     useEffect(() => {
@@ -83,8 +93,14 @@ export const RootProvider = ({ children }: RootProviderProps) => {
     useEffect(() => {
         ElectronEventEmitter.on('WORK_SETTINGS_UPDATED', loadSettings);
 
+        const handleHRStatusChange = (status: any) => {
+            setHrAuthStatus(status);
+        };
+        ElectronEventEmitter.on('HR_AUTH_STATE_CHANGED', handleHRStatusChange);
+
         return () => {
             ElectronEventEmitter.off('WORK_SETTINGS_UPDATED', loadSettings);
+            ElectronEventEmitter.off('HR_AUTH_STATE_CHANGED', handleHRStatusChange);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -102,6 +118,7 @@ export const RootProvider = ({ children }: RootProviderProps) => {
         updateWorkSettings,
         dataSettings,
         updateDataSettings,
+        hrAuthStatus,
     };
 
     return <RootContext.Provider value={defaultContext}>{children}</RootContext.Provider>;

@@ -17,7 +17,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
     getHRAuthStatus,
     getHRBackendConfig,
-    loginToHRBackend,
     logoutFromHRBackend,
     syncActivitiesToHR,
 } from '../../services/settings.api';
@@ -63,8 +62,6 @@ function delay(ms: number) {
 export const HRForm = () => {
     const [backendConfig, setBackendConfig] = useState(defaultBackendConfig);
     const [status, setStatus] = useState(defaultStatus);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const [isBusy, setIsBusy] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
 
@@ -76,7 +73,6 @@ export const HRForm = () => {
                 const [config, nextStatus] = await Promise.all([getHRBackendConfig(), getHRAuthStatus()]);
                 setBackendConfig(config);
                 setStatus(nextStatus);
-                setUsername(nextStatus.username || '');
                 setLocalError(null);
                 return;
             } catch (error) {
@@ -99,7 +95,6 @@ export const HRForm = () => {
         const handleStatusChange = (nextStatus: unknown) => {
             const authStatus = nextStatus as HRAuthStatus;
             setStatus(authStatus);
-            setUsername(authStatus.username || '');
         };
 
         ElectronEventEmitter.on('HR_AUTH_STATE_CHANGED', handleStatusChange);
@@ -108,20 +103,6 @@ export const HRForm = () => {
         };
     }, []);
 
-    const handleLogin = async () => {
-        setIsBusy(true);
-        setLocalError(null);
-
-        try {
-            const nextStatus = await loginToHRBackend({ username, password });
-            setStatus(nextStatus);
-            setPassword('');
-        } catch (error) {
-            setLocalError(error instanceof Error ? error.message : 'Login failed');
-        } finally {
-            setIsBusy(false);
-        }
-    };
 
     const handleLogout = async () => {
         setIsBusy(true);
@@ -130,7 +111,6 @@ export const HRForm = () => {
         try {
             const nextStatus = await logoutFromHRBackend();
             setStatus(nextStatus);
-            setPassword('');
         } catch (error) {
             setLocalError(error instanceof Error ? error.message : 'Logout failed');
         } finally {
@@ -182,26 +162,6 @@ export const HRForm = () => {
                     {status.isSyncing && <Badge colorScheme="orange">Syncing</Badge>}
                 </HStack>
 
-                <FormControl isDisabled={!backendConfig.configured || status.isAuthenticated}>
-                    <FormLabel htmlFor="hr-username">Employee ID</FormLabel>
-                    <Input
-                        id="hr-username"
-                        placeholder="Employee ID"
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
-                    />
-                </FormControl>
-
-                <FormControl isDisabled={!backendConfig.configured || status.isAuthenticated}>
-                    <FormLabel htmlFor="hr-password">Password</FormLabel>
-                    <Input
-                        id="hr-password"
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                    />
-                </FormControl>
 
                 {(localError || status.authError || status.lastSyncError) && (
                     <Alert status="error">
@@ -211,20 +171,12 @@ export const HRForm = () => {
                 )}
 
                 <HStack spacing={3}>
-                    {!status.isAuthenticated ? (
-                        <Button
-                            onClick={handleLogin}
-                            isLoading={isBusy}
-                            isDisabled={!backendConfig.configured || !username || !password}
-                        >
-                            Sign in
-                        </Button>
-                    ) : (
+                    {status.isAuthenticated && (
                         <>
-                            <Button onClick={handleLogout} isLoading={isBusy} variant="outline">
+                            <Button onClick={handleLogout} isLoading={isBusy} variant="outline" colorScheme="red">
                                 Sign out
                             </Button>
-                            <Button onClick={handleSyncNow} isLoading={isBusy} variant="outline">
+                            <Button onClick={handleSyncNow} isLoading={isBusy} variant="solid" colorScheme="blue">
                                 Sync now
                             </Button>
                         </>

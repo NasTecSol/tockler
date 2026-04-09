@@ -18,3 +18,16 @@ export interface HRAuthStatus {
     sessionCheckedInAt: number | null;
     isSyncing: boolean;
 }
+export const defaultHRAuthStatus: HRAuthStatus = {
+    backendUrl: null,
+    configured: false,
+    username: '',
+    isAuthenticated: false,
+    authError: null,
+    lastSyncCursor: null,
+    lastSyncAt: null,
+    lastSyncError: null,
+    hasActiveSession: false,
+    sessionCheckedInAt: null,
+    isSyncing: false,
+};
