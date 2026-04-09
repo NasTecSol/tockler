@@ -11,6 +11,15 @@ interface ElectronBridge {
     removeListenerIpc: (channel: string, listener: EventListener) => void;
 }
 
+function isErrorPayload(value: unknown): value is { error: string } {
+    return Boolean(
+        value &&
+            typeof value === 'object' &&
+            'error' in value &&
+            typeof (value as { error?: unknown }).error === 'string',
+    );
+}
+
 // Get the electronBridge at call time, not at module load time
 const getElectronBridge = (): ElectronBridge => {
     return (
@@ -40,6 +49,9 @@ async function emit<T = unknown>(name: string, ...args: unknown[]): Promise<T> {
     try {
         Logger.debug(`Emit event: ${name}`);
         const result = await getElectronBridge().invokeIpc<T>(name, ...args);
+        if (isErrorPayload(result)) {
+            throw new Error(result.error);
+        }
         return result;
     } catch (error) {
         console.error('[EventEmitter] emit failed for', name, 'with error:', error);

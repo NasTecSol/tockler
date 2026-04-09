@@ -39,6 +39,7 @@
         "test": "TZ=Europe/Tallinn vitest --run",
         "coverage": "TZ=Europe/Tallinn vitest run --coverage",
         "preview": "vite preview",
+        "start_workspace": "powershell -ExecutionPolicy Bypass -NoProfile -File .\\scripts\\launch-workspace.ps1",
         "setup": "pnpm install && npm run postinstall",
         "db:generate": "drizzle-kit generate --schema=./src/drizzle/schema.ts --out=./src/drizzle/migrations",
         "db:push": "drizzle-kit push:sqlite --schema=./src/drizzle/schema.ts",

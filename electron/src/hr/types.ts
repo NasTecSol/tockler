@@ -4,6 +4,8 @@ import { State } from '../enums/state';
 export interface HRBackendConfig {
     baseUrl: string | null;
     configured: boolean;
+    tenantId: string | null;
+    buildMarker: string;
 }
 
 export interface HRIntegrationState {

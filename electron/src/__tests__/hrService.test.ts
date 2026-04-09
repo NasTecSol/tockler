@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createHRIntegrationService } from '../hr/hrService';
+import { createHRIntegrationService, resolveBackendUrlFromEnv } from '../hr/hrService';
 import { State } from '../enums/state';
 import { defaultHRIntegrationState } from '../hr/types';
 
@@ -99,5 +99,29 @@ describe('HRIntegrationService', () => {
         expect(persistedState.isAuthenticated).toBe(false);
         expect(persistedState.authToken).toBeNull();
         expect(persistedState.authError).toContain('expired');
+    });
+
+    it('reads backend url from process env fallback for electron main process', () => {
+        const originalHrBackendUrl = process.env.HR_BACKEND_URL;
+        const originalViteBackendUrl = process.env.VITE_HR_BACKEND_URL;
+
+        process.env.HR_BACKEND_URL = 'https://hr.example.com///';
+        delete process.env.VITE_HR_BACKEND_URL;
+
+        try {
+            expect(resolveBackendUrlFromEnv()).toBe('https://hr.example.com');
+        } finally {
+            if (originalHrBackendUrl === undefined) {
+                delete process.env.HR_BACKEND_URL;
+            } else {
+                process.env.HR_BACKEND_URL = originalHrBackendUrl;
+            }
+
+            if (originalViteBackendUrl === undefined) {
+                delete process.env.VITE_HR_BACKEND_URL;
+            } else {
+                process.env.VITE_HR_BACKEND_URL = originalViteBackendUrl;
+            }
+        }
     });
 });

@@ -78,7 +78,7 @@ export const sendToNotificationWindow = async (key: string, durationMs: number) 
     }
 };
 
-export const sendToMainWindow = (key: string, message = '') => {
+export const sendToMainWindow = (key: string, message: unknown = '') => {
     if (WindowManager.mainWindow && WindowManager.mainWindow.webContents) {
         WindowManager.mainWindow.webContents.send(key, message);
     } else {

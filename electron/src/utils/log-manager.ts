@@ -28,6 +28,25 @@ if (!isLoggingEnabled) {
 }
 
 const origConsole = log.transports.console.writeFn;
+let consoleTransportBroken = false;
+
+const safeConsoleWrite = (msgObj: any) => {
+    if (consoleTransportBroken) {
+        return;
+    }
+
+    try {
+        origConsole(msgObj);
+    } catch (error: any) {
+        if (error && (error.code === 'EPIPE' || error.errno === -4047 || String(error.message).includes('EPIPE'))) {
+            consoleTransportBroken = true;
+            log.transports.console.level = false;
+            return;
+        }
+
+        throw error;
+    }
+};
 
 const isError = function (e: any) {
     return e && e.stack && e.message;
@@ -57,11 +76,11 @@ const sentryTransportConsole = (msgObj: any) => {
         });
     }
 
-    origConsole(msgObj);
+    safeConsoleWrite(msgObj);
 };
 
 // Override the console transport
-log.transports.console.writeFn = isProd ? sentryTransportConsole : origConsole;
+log.transports.console.writeFn = isProd ? sentryTransportConsole : safeConsoleWrite;
 
 export class LogManager {
     logger: any;

@@ -1,3 +1,4 @@
+import os from 'os';
 import { getOngoingAppTrackItem } from '../background/watchTrackItems/watchAndSetAppTrackItem';
 import { getOngoingLogTrackItem } from '../background/watchTrackItems/watchAndSetLogTrackItem';
 import { getOngoingStatusTrackItem } from '../background/watchTrackItems/watchAndSetStatusTrackItem';
@@ -26,6 +27,8 @@ type FetchLike = typeof fetch;
 interface HRServiceDeps {
     fetchImpl: FetchLike;
     getBackendUrl: () => string | null;
+    getTenantId: () => string | null;
+    getClientAddress: () => string;
     loadState: () => Promise<HRIntegrationState>;
     saveState: (state: HRIntegrationState) => Promise<unknown>;
     findTrackItemsInRange: (from: number, to: number) => Promise<TrackItem[]>;
@@ -57,6 +60,55 @@ function normalizeBackendUrl(rawUrl: string | null) {
     return trimmed ? trimmed.replace(/\/+$/, '') : null;
 }
 
+function buildRequestUrls(backendUrl: string, path: string) {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const urls = [`${backendUrl}${normalizedPath}`];
+
+    if (!backendUrl.endsWith('/api')) {
+        urls.push(`${backendUrl}/api${normalizedPath}`);
+    }
+
+    return urls;
+}
+
+function resolveClientAddress() {
+    const interfaces = os.networkInterfaces();
+
+    for (const entries of Object.values(interfaces)) {
+        for (const entry of entries || []) {
+            if (entry.family === 'IPv4' && !entry.internal && entry.address) {
+                return entry.address;
+            }
+        }
+    }
+
+    return '127.0.0.1';
+}
+
+export function resolveBackendUrlFromEnv() {
+    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+    const viteEnvUrl =
+        viteEnv ? viteEnv.VITE_HR_BACKEND_URL || viteEnv.HR_BACKEND_URL || null : null;
+
+    const processEnvUrl = process.env.HR_BACKEND_URL || process.env.VITE_HR_BACKEND_URL || null;
+
+    return normalizeBackendUrl(viteEnvUrl || processEnvUrl);
+}
+
+export function resolveTenantIdFromEnv() {
+    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+    const viteEnvTenantId =
+        viteEnv ? viteEnv.VITE_HR_TENANT_ID || viteEnv.HR_TENANT_ID || null : null;
+
+    const processEnvTenantId = process.env.HR_TENANT_ID || process.env.VITE_HR_TENANT_ID || null;
+
+    if (!viteEnvTenantId && !processEnvTenantId) {
+        return null;
+    }
+
+    return (viteEnvTenantId || processEnvTenantId || '').trim() || null;
+}
+
 export function mapToAuthStatus(state: HRIntegrationState, backendUrl: string | null, isSyncing: boolean): HRAuthStatus {
     return {
         backendUrl,
@@ -82,8 +134,14 @@ export class HRIntegrationService {
     getBackendConfig(): HRBackendConfig {
         const rawUrl = this.deps.getBackendUrl();
         const baseUrl = normalizeBackendUrl(rawUrl);
+        const tenantId = this.deps.getTenantId();
         logger.info('getBackendConfig', { rawUrl, baseUrl });
-        return { baseUrl, configured: Boolean(baseUrl) };
+        return {
+            baseUrl,
+            configured: Boolean(baseUrl),
+            tenantId,
+            buildMarker: 'hr-api-v2-tenant',
+        };
     }
 
     private async loadState() {
@@ -125,36 +183,57 @@ export class HRIntegrationService {
         if (!backendUrl) {
             throw new Error('HR backend URL is not configured.');
         }
+        const tenantId = this.deps.getTenantId();
+        const requestInit: RequestInit = {
+            ...init,
+            headers: {
+                ...(init.headers || {}),
+                ...(tenantId ? { 'x-tenant-id': tenantId } : {}),
+            },
+        };
+
+        const requestUrls = buildRequestUrls(backendUrl, path);
 
         let attempt = 0;
         let lastError: unknown = null;
 
         while (attempt <= retries) {
             try {
-                const response = await this.deps.fetchImpl(`${backendUrl}${path}`, init);
+                for (const requestUrl of requestUrls) {
+                    const response = await this.deps.fetchImpl(requestUrl, requestInit);
 
-                if (response.status === 401 || response.status === 403) {
-                    await this.handleUnauthorized();
-                    throw new Error('HR session expired. Please sign in again.');
-                }
-
-                if (!response.ok) {
-                    const body = await parseResponseBody(response);
-                    const message =
-                        typeof body === 'string'
-                            ? body
-                            : (body && typeof body === 'object' && 'message' in body && String(body.message)) ||
-                              `HR request failed with status ${response.status}`;
-
-                    if (TRANSIENT_STATUS_CODES.has(response.status) && attempt < retries) {
-                        attempt += 1;
-                        continue;
+                    if (response.status === 401 || response.status === 403) {
+                        await this.handleUnauthorized();
+                        throw new Error('HR session expired. Please sign in again.');
                     }
 
-                    throw new Error(message);
-                }
+                    if (!response.ok) {
+                        if ((response.status === 404 || response.status === 405) && requestUrl !== requestUrls[requestUrls.length - 1]) {
+                            logger.warn('HR request failed, trying alternate API base path', {
+                                path,
+                                attemptedUrl: requestUrl,
+                                status: response.status,
+                            });
+                            continue;
+                        }
 
-                return parseResponseBody(response);
+                        const body = await parseResponseBody(response);
+                        const message =
+                            typeof body === 'string'
+                                ? body
+                                : (body && typeof body === 'object' && 'message' in body && String(body.message)) ||
+                                  `HR request failed with status ${response.status}`;
+
+                        if (TRANSIENT_STATUS_CODES.has(response.status) && attempt < retries) {
+                            attempt += 1;
+                            continue;
+                        }
+
+                        throw new Error(message);
+                    }
+
+                    return parseResponseBody(response);
+                }
             } catch (error) {
                 lastError = error;
                 const shouldRetry =
@@ -175,12 +254,13 @@ export class HRIntegrationService {
     }
 
     async login({ username, password }: HRLoginPayload) {
+        const clientAddress = this.deps.getClientAddress();
         const payload = await this.request(
             '/employee/login',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ empId: username, password, macAddress: clientAddress }),
             },
             1,
         );
@@ -394,7 +474,9 @@ export class HRIntegrationService {
 export function createHRIntegrationService(overrides: Partial<HRServiceDeps> = {}) {
     const deps: HRServiceDeps = {
         fetchImpl: fetch,
-        getBackendUrl: () => normalizeBackendUrl((import.meta.env.VITE_HR_BACKEND_URL as string) || null),
+        getBackendUrl: () => resolveBackendUrlFromEnv(),
+        getTenantId: () => resolveTenantIdFromEnv(),
+        getClientAddress: () => resolveClientAddress(),
         loadState: async () => dbClient.fetchHRIntegrationState(),
         saveState: async (state) => dbClient.saveHRIntegrationState(state),
         findTrackItemsInRange: async (from, to) => dbClient.findTrackItemsInRange(from, to),

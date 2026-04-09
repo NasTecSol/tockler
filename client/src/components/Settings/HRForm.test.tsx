@@ -80,7 +80,7 @@ describe('HRForm', () => {
 
         renderForm();
 
-        fireEvent.change(await screen.findByLabelText('Employee username'), { target: { value: 'alex' } });
+        fireEvent.change(await screen.findByLabelText('Employee ID'), { target: { value: 'alex' } });
         fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
         fireEvent.click(screen.getByText('Sign in'));
 
@@ -108,7 +108,7 @@ describe('HRForm', () => {
 
         renderForm();
 
-        fireEvent.change(await screen.findByLabelText('Employee username'), { target: { value: 'alex' } });
+        fireEvent.change(await screen.findByLabelText('Employee ID'), { target: { value: 'alex' } });
         fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
         fireEvent.click(screen.getByText('Sign in'));
 

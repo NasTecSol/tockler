@@ -40,6 +40,8 @@ export default defineConfig(({ mode }) => {
                         define: {
                             'process.env.HR_BACKEND_URL': JSON.stringify(env.HR_BACKEND_URL),
                             'process.env.VITE_HR_BACKEND_URL': JSON.stringify(env.VITE_HR_BACKEND_URL),
+                            'process.env.HR_TENANT_ID': JSON.stringify(env.HR_TENANT_ID),
+                            'process.env.VITE_HR_TENANT_ID': JSON.stringify(env.VITE_HR_TENANT_ID),
                         },
                         build: {
                             rollupOptions: {
@@ -62,6 +64,8 @@ export default defineConfig(({ mode }) => {
                         define: {
                             'process.env.HR_BACKEND_URL': JSON.stringify(env.HR_BACKEND_URL),
                             'process.env.VITE_HR_BACKEND_URL': JSON.stringify(env.VITE_HR_BACKEND_URL),
+                            'process.env.HR_TENANT_ID': JSON.stringify(env.HR_TENANT_ID),
+                            'process.env.VITE_HR_TENANT_ID': JSON.stringify(env.VITE_HR_TENANT_ID),
                         },
                         build: {
                             rollupOptions: {

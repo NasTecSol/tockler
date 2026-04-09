@@ -36493,6 +36493,22 @@ if (!isLoggingEnabled) {
   log.transports.file.level = false;
 }
 const origConsole = log.transports.console.writeFn;
+let consoleTransportBroken = false;
+const safeConsoleWrite = (msgObj) => {
+  if (consoleTransportBroken) {
+    return;
+  }
+  try {
+    origConsole(msgObj);
+  } catch (error2) {
+    if (error2 && (error2.code === "EPIPE" || error2.errno === -4047 || String(error2.message).includes("EPIPE"))) {
+      consoleTransportBroken = true;
+      log.transports.console.level = false;
+      return;
+    }
+    throw error2;
+  }
+};
 const isError = function(e) {
   return e && e.stack && e.message;
 };
@@ -36515,9 +36531,9 @@ const sentryTransportConsole = (msgObj) => {
       }
     });
   }
-  origConsole(msgObj);
+  safeConsoleWrite(msgObj);
 };
-log.transports.console.writeFn = isProd ? sentryTransportConsole : origConsole;
+log.transports.console.writeFn = isProd ? sentryTransportConsole : safeConsoleWrite;
 class LogManager {
   constructor() {
     __publicField(this, "logger");
@@ -63397,6 +63413,7 @@ const defaultHRIntegrationState = {
   hasActiveSession: false,
   sessionCheckedInAt: null
 };
+const __vite_import_meta_env__ = { "VITE_HR_BACKEND_URL": "https://dev.nashrms.com", "VITE_HR_TENANT_ID": "2002" };
 const MIN_SYNC_INTERVAL_SECONDS = 60;
 const TRANSIENT_STATUS_CODES = /* @__PURE__ */ new Set([408, 425, 429, 500, 502, 503, 504]);
 const logger$8 = logManager.getLogger("HRIntegration");
@@ -63417,6 +63434,37 @@ function normalizeBackendUrl(rawUrl) {
   }
   const trimmed = rawUrl.trim();
   return trimmed ? trimmed.replace(/\/+$/, "") : null;
+}
+function buildRequestUrls(backendUrl, path2) {
+  const normalizedPath = path2.startsWith("/") ? path2 : `/${path2}`;
+  const urls = [`${backendUrl}${normalizedPath}`];
+  if (!backendUrl.endsWith("/api")) {
+    urls.push(`${backendUrl}/api${normalizedPath}`);
+  }
+  return urls;
+}
+function resolveClientAddress() {
+  const interfaces = require$$1$2.networkInterfaces();
+  for (const entries of Object.values(interfaces)) {
+    for (const entry of entries || []) {
+      if (entry.family === "IPv4" && !entry.internal && entry.address) {
+        return entry.address;
+      }
+    }
+  }
+  return "127.0.0.1";
+}
+function resolveBackendUrlFromEnv() {
+  const viteEnv = __vite_import_meta_env__;
+  const viteEnvUrl = viteEnv ? viteEnv.VITE_HR_BACKEND_URL : null;
+  const processEnvUrl = "https://dev.nashrms.com";
+  return normalizeBackendUrl(viteEnvUrl || processEnvUrl);
+}
+function resolveTenantIdFromEnv() {
+  const viteEnv = __vite_import_meta_env__;
+  const viteEnvTenantId = viteEnv ? viteEnv.VITE_HR_TENANT_ID : null;
+  const processEnvTenantId = "2002";
+  return (viteEnvTenantId || processEnvTenantId || "").trim() || null;
 }
 function mapToAuthStatus(state, backendUrl, isSyncing) {
   return {
@@ -63442,8 +63490,14 @@ class HRIntegrationService {
   getBackendConfig() {
     const rawUrl = this.deps.getBackendUrl();
     const baseUrl = normalizeBackendUrl(rawUrl);
+    const tenantId = this.deps.getTenantId();
     logger$8.info("getBackendConfig", { rawUrl, baseUrl });
-    return { baseUrl, configured: Boolean(baseUrl) };
+    return {
+      baseUrl,
+      configured: Boolean(baseUrl),
+      tenantId,
+      buildMarker: "hr-api-v2-tenant"
+    };
   }
   async loadState() {
     const state = await this.deps.loadState();
@@ -63479,25 +63533,44 @@ class HRIntegrationService {
     if (!backendUrl) {
       throw new Error("HR backend URL is not configured.");
     }
+    const tenantId = this.deps.getTenantId();
+    const requestInit = {
+      ...init2,
+      headers: {
+        ...init2.headers || {},
+        ...tenantId ? { "x-tenant-id": tenantId } : {}
+      }
+    };
+    const requestUrls = buildRequestUrls(backendUrl, path2);
     let attempt = 0;
     let lastError = null;
     while (attempt <= retries) {
       try {
-        const response = await this.deps.fetchImpl(`${backendUrl}${path2}`, init2);
-        if (response.status === 401 || response.status === 403) {
-          await this.handleUnauthorized();
-          throw new Error("HR session expired. Please sign in again.");
-        }
-        if (!response.ok) {
-          const body = await parseResponseBody(response);
-          const message = typeof body === "string" ? body : body && typeof body === "object" && "message" in body && String(body.message) || `HR request failed with status ${response.status}`;
-          if (TRANSIENT_STATUS_CODES.has(response.status) && attempt < retries) {
-            attempt += 1;
-            continue;
+        for (const requestUrl of requestUrls) {
+          const response = await this.deps.fetchImpl(requestUrl, requestInit);
+          if (response.status === 401 || response.status === 403) {
+            await this.handleUnauthorized();
+            throw new Error("HR session expired. Please sign in again.");
           }
-          throw new Error(message);
+          if (!response.ok) {
+            if ((response.status === 404 || response.status === 405) && requestUrl !== requestUrls[requestUrls.length - 1]) {
+              logger$8.warn("HR request failed, trying alternate API base path", {
+                path: path2,
+                attemptedUrl: requestUrl,
+                status: response.status
+              });
+              continue;
+            }
+            const body = await parseResponseBody(response);
+            const message = typeof body === "string" ? body : body && typeof body === "object" && "message" in body && String(body.message) || `HR request failed with status ${response.status}`;
+            if (TRANSIENT_STATUS_CODES.has(response.status) && attempt < retries) {
+              attempt += 1;
+              continue;
+            }
+            throw new Error(message);
+          }
+          return parseResponseBody(response);
         }
-        return parseResponseBody(response);
       } catch (error2) {
         lastError = error2;
         const shouldRetry = !(error2 instanceof Error) || error2.message === "fetch failed" || error2.message === "Failed to fetch" || error2.name === "TypeError";
@@ -63510,12 +63583,13 @@ class HRIntegrationService {
     throw lastError instanceof Error ? lastError : new Error("Unknown HR request error");
   }
   async login({ username, password }) {
+    const clientAddress = this.deps.getClientAddress();
     const payload = await this.request(
       "/employee/login",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ empId: username, password, macAddress: clientAddress })
       },
       1
     );
@@ -63692,7 +63766,9 @@ class HRIntegrationService {
 function createHRIntegrationService(overrides = {}) {
   const deps = {
     fetchImpl: fetch,
-    getBackendUrl: () => normalizeBackendUrl("https://dev.nashrms.com"),
+    getBackendUrl: () => resolveBackendUrlFromEnv(),
+    getTenantId: () => resolveTenantIdFromEnv(),
+    getClientAddress: () => resolveClientAddress(),
     loadState: async () => dbClient.fetchHRIntegrationState(),
     saveState: async (state) => dbClient.saveHRIntegrationState(state),
     findTrackItemsInRange: async (from2, to2) => dbClient.findTrackItemsInRange(from2, to2),

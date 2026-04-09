@@ -28,6 +28,8 @@ import { HRAuthStatus, HRBackendConfig } from './HRForm.util';
 const defaultBackendConfig: HRBackendConfig = {
     baseUrl: null,
     configured: false,
+    tenantId: null,
+    buildMarker: 'unknown',
 };
 
 const defaultStatus: HRAuthStatus = {
@@ -52,6 +54,12 @@ function formatTimestamp(timestamp: number | null) {
     return DateTime.fromMillis(timestamp).toFormat('yyyy-MM-dd HH:mm:ss');
 }
 
+function delay(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 export const HRForm = () => {
     const [backendConfig, setBackendConfig] = useState(defaultBackendConfig);
     const [status, setStatus] = useState(defaultStatus);
@@ -61,10 +69,26 @@ export const HRForm = () => {
     const [localError, setLocalError] = useState<string | null>(null);
 
     const refreshStatus = useCallback(async () => {
-        const [config, nextStatus] = await Promise.all([getHRBackendConfig(), getHRAuthStatus()]);
-        setBackendConfig(config);
-        setStatus(nextStatus);
-        setUsername(nextStatus.username || '');
+        let lastError: unknown = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+                const [config, nextStatus] = await Promise.all([getHRBackendConfig(), getHRAuthStatus()]);
+                setBackendConfig(config);
+                setStatus(nextStatus);
+                setUsername(nextStatus.username || '');
+                setLocalError(null);
+                return;
+            } catch (error) {
+                lastError = error;
+
+                if (attempt < 2) {
+                    await delay(500);
+                }
+            }
+        }
+
+        setLocalError(lastError instanceof Error ? lastError.message : 'Failed to load HR backend settings');
     }, []);
 
     useEffect(() => {
@@ -72,9 +96,10 @@ export const HRForm = () => {
     }, [refreshStatus]);
 
     useEffect(() => {
-        const handleStatusChange = (nextStatus: HRAuthStatus) => {
-            setStatus(nextStatus);
-            setUsername(nextStatus.username || '');
+        const handleStatusChange = (nextStatus: unknown) => {
+            const authStatus = nextStatus as HRAuthStatus;
+            setStatus(authStatus);
+            setUsername(authStatus.username || '');
         };
 
         ElectronEventEmitter.on('HR_AUTH_STATE_CHANGED', handleStatusChange);
@@ -135,6 +160,9 @@ export const HRForm = () => {
                     <Text fontSize="sm" color="gray.500">
                         {backendConfig.configured ? backendConfig.baseUrl : 'Not configured'}
                     </Text>
+                    <Text fontSize="xs" color="gray.500">
+                        Build marker: {backendConfig.buildMarker} | Tenant: {backendConfig.tenantId || 'missing'}
+                    </Text>
                 </Box>
 
                 {!backendConfig.configured && (
@@ -155,10 +183,10 @@ export const HRForm = () => {
                 </HStack>
 
                 <FormControl isDisabled={!backendConfig.configured || status.isAuthenticated}>
-                    <FormLabel htmlFor="hr-username">Employee username</FormLabel>
+                    <FormLabel htmlFor="hr-username">Employee ID</FormLabel>
                     <Input
                         id="hr-username"
-                        placeholder="Username"
+                        placeholder="Employee ID"
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />
