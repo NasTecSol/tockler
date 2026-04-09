@@ -64,7 +64,7 @@ const mainStore = createStore<StoreModel>({
         state.selectedTimelineItem = payload;
     }),
 
-    liveView: true,
+    liveView: false,
     setLiveView: action((state, payload) => {
         state.liveView = payload;
     }),

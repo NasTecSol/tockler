@@ -13,7 +13,7 @@ import {
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { employeeLogin } from '../services/employee-login.api';
 import { ResponseError } from '../services/response-error';
-import { getSavedEmpId, saveEmpId } from './authStorage';
+import { getSavedEmpId, getSavedTenant, saveEmpId, saveTenant } from './authStorage';
 
 function getMacAddressCandidate(): string {
     try {
@@ -62,7 +62,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const savedEmpId = getSavedEmpId();
-        if (savedEmpId) {
+        const savedTenant = getSavedTenant();
+        if (savedEmpId && savedTenant) {
             setIsAuthed(true);
         }
         setIsChecking(false);
@@ -83,6 +84,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
                 password,
                 macAddress: getMacAddressCandidate(),
             });
+            saveTenant(tenant.trim());
             saveEmpId(empId.trim());
             setIsAuthed(true);
             toast({

@@ -4,6 +4,7 @@ import { workerData } from 'worker_threads';
 import * as schema from '../schema';
 
 const outputPath = workerData.outputPath;
+export const migrationsPath = workerData.migrationsPath;
 
 console.info('real db outputPath', outputPath);
 

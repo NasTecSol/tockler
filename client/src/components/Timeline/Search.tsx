@@ -1,12 +1,14 @@
 import { Box, Button, Tooltip, useToast } from '@chakra-ui/react';
 import { OnDatesChangeProps } from '@datepicker-react/hooks';
 import { DateTime } from 'luxon';
-import { memo, useEffect } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
-import { FaPlay, FaStop } from 'react-icons/fa';
 import { Logger } from '../../logger';
+import { getSavedEmpId, getSavedTenant } from '../../auth/authStorage';
 import { useStoreActions, useStoreState } from '../../store/easyPeasy';
 import { TIMERANGE_MODE_TODAY } from '../../store/mainStore';
+import { sendZkTecoClientEvent } from '../../services/zktecoClient.api';
+import { ResponseError } from '../../services/response-error';
 import { DateRangeInput } from '../Datepicker';
 import { getTodayTimerange } from './timeline.utils';
 
@@ -22,33 +24,126 @@ export const Search = memo(() => {
     const setLiveView = useStoreActions((actions) => actions.setLiveView);
     const loadTimerange = useStoreActions((actions) => actions.loadTimerange);
 
-    // Show a toast notification for live view status changes
-    const showLiveViewToast = (isEnabled: boolean) => {
+    const getErrorDescription = useCallback(async (err: unknown): Promise<string> => {
+        if (err instanceof ResponseError) {
+            try {
+                const contentType = err.response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const data = (await err.response.json()) as unknown;
+                    if (typeof data === 'string') return `${err.response.status}: ${data}`;
+                    if (data && typeof data === 'object') {
+                        const message = (data as Record<string, unknown>).message;
+                        if (typeof message === 'string') return `${err.response.status}: ${message}`;
+                    }
+                    return `${err.response.status}: Request failed`;
+                }
+                const text = await err.response.text();
+                return text ? `${err.response.status}: ${text}` : `${err.response.status}: Request failed`;
+            } catch {
+                return `${err.response.status}: Request failed`;
+            }
+        }
+
+        if (err instanceof Error) return err.message;
+        return 'Unknown error';
+    }, []);
+
+    const showCheckToast = (isCheckedIn: boolean) => {
         toast({
-            title: `Live view ${isEnabled ? 'enabled' : 'disabled'}`,
-            status: isEnabled ? 'success' : 'info',
+            title: isCheckedIn ? 'Checked in' : 'Checked out',
+            status: isCheckedIn ? 'success' : 'info',
             duration: 2000,
             isClosable: true,
             position: 'top',
         });
     };
 
-    // Monitor liveView state changes and show toast
     useEffect(() => {
         if (timerangeMode === TIMERANGE_MODE_TODAY) {
-            showLiveViewToast(liveView);
+            showCheckToast(liveView);
         }
-    }, [liveView, showLiveViewToast]);
+    }, [liveView, showCheckToast, timerangeMode]);
 
     const showLiveViewButton = timerangeMode === TIMERANGE_MODE_TODAY;
 
-    const toggleLiveView = () => {
-        const newLiveView = !liveView;
-        setLiveView(newLiveView);
+    const [isSubmittingCheck, setIsSubmittingCheck] = useState(false);
 
-        // Log the user action
-        Logger.debug(`User toggled live view to: ${newLiveView ? 'enabled' : 'disabled'}`);
-    };
+    const checkButtonLabel = useMemo(() => {
+        return liveView ? 'Check-Out' : 'Check-In';
+    }, [liveView]);
+
+    const getDeviceIpCandidate = useCallback((): string => {
+        try {
+            const maybeFromConfig = window?.electronBridge?.configGet?.('deviceIp');
+            if (typeof maybeFromConfig === 'string' && maybeFromConfig.trim().length > 0) {
+                return maybeFromConfig.trim();
+            }
+        } catch {
+            // ignore
+        }
+        return window.location.hostname || '0.0.0.0';
+    }, []);
+
+    const toggleCheckInOut = useCallback(async () => {
+        if (isSubmittingCheck) return;
+
+        const empId = getSavedEmpId();
+        if (!empId) {
+            toast({
+                title: 'Not logged in',
+                description: 'Please login first.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+                position: 'top',
+            });
+            return;
+        }
+        const tenant = getSavedTenant();
+        if (!tenant) {
+            toast({
+                title: 'Tenant missing',
+                description: 'Please login again.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+                position: 'top',
+            });
+            return;
+        }
+
+        const nextLiveView = !liveView;
+        setIsSubmittingCheck(true);
+        try {
+            await sendZkTecoClientEvent({
+                tenant,
+                timestamp: DateTime.now().toFormat('yyyy-LL-dd HH:mm:ss'),
+                deviceUserId: empId,
+                sn: '111',
+                status: '1',
+                verify_type: '0',
+                deviceIp: getDeviceIpCandidate(),
+                deviceName: 'Remote',
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            });
+
+            setLiveView(nextLiveView);
+
+            Logger.debug(`User toggled check state to: ${nextLiveView ? 'checked-in' : 'checked-out'}`);
+        } catch (err) {
+            const description = await getErrorDescription(err);
+            toast({
+                title: 'Check-In/Out failed',
+                description,
+                status: 'error',
+                duration: 6000,
+                isClosable: true,
+                position: 'top',
+            });
+        } finally {
+            setIsSubmittingCheck(false);
+        }
+    }, [getDeviceIpCandidate, getErrorDescription, isSubmittingCheck, liveView, setLiveView, toast]);
 
     const handleOnDatesChange = (data: OnDatesChangeProps) => {
         Logger.debug('TIMERANGE:', data);
@@ -65,7 +160,6 @@ export const Search = memo(() => {
 
     const selectToday = () => {
         loadTimerange(getTodayTimerange());
-        setLiveView(true);
     };
 
     const selectYesterday = () => {
@@ -113,17 +207,19 @@ export const Search = memo(() => {
                 </Button>
             </Box>
             <Box p={1}>
-                <Tooltip placement="bottom" label="Also activates Live view">
-                    <Button onClick={selectToday} variant={showLiveViewButton ? 'solid' : 'outline'}>
-                        Today
-                    </Button>
-                </Tooltip>
+                <Button onClick={selectToday} variant={showLiveViewButton ? 'solid' : 'outline'}>
+                    Today
+                </Button>
             </Box>
             {showLiveViewButton && (
                 <Box p={1}>
-                    <Tooltip placement="bottom" label={liveView ? 'Pause live view' : 'Start live view'}>
-                        <Button onClick={toggleLiveView} colorScheme={liveView ? 'green' : 'red'}>
-                            {liveView ? <FaStop /> : <FaPlay />}
+                    <Tooltip placement="bottom" label={liveView ? 'Check-Out' : 'Check-In'}>
+                        <Button
+                            onClick={toggleCheckInOut}
+                            colorScheme={liveView ? 'green' : 'red'}
+                            isLoading={isSubmittingCheck}
+                        >
+                            {checkButtonLabel}
                         </Button>
                     </Tooltip>
                 </Box>

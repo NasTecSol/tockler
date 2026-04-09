@@ -8,9 +8,12 @@ const workerFilePath = path.resolve(__dirname, './dbWorker.js');
 
 const outputPath = config.databaseConfig.outputPath;
 
+const migrationsPath = path.resolve(__dirname, 'drizzle', 'migrations');
+
 const worker = new Worker(workerFilePath, {
     workerData: {
         outputPath,
+        migrationsPath,
     },
 });
 
@@ -23,6 +26,16 @@ worker.on('message', ({ id, result, error }) => {
     if (!cb) return;
     pending.delete(id);
     error ? cb.reject(new Error(error)) : cb.resolve(result);
+});
+
+worker.on('error', (err) => {
+    console.error('...........worker error', err);
+});
+
+worker.on('exit', (code) => {
+    if (code !== 0) {
+        console.error(`...........worker stopped with exit code ${code}`);
+    }
 });
 
 function callWorker<K extends keyof WorkerActionArgs>(

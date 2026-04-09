@@ -9,9 +9,10 @@ import renderer from 'vite-plugin-electron-renderer';
 function copyMigrations() {
     return {
         name: 'copy-migrations',
-        closeBundle() {
+        writeBundle() {
             const srcDir = resolve(__dirname, 'src/drizzle/migrations');
             const destDir = resolve(__dirname, 'dist-electron/drizzle/migrations');
+            console.log(`Copying migrations from ${srcDir} to ${destDir}`);
             fs.copySync(srcDir, destDir, { overwrite: true });
             console.log('✓ Drizzle migrations copied to dist-electron');
         },

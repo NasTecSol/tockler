@@ -1,7 +1,7 @@
 import { Button, Flex, Text } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearEmpId, getSavedEmpId } from '../../auth/authStorage';
+import { clearEmpId, clearTenant, getSavedEmpId } from '../../auth/authStorage';
 import { CardBox } from '../CardBox';
 
 export function AccountSection() {
@@ -19,6 +19,7 @@ export function AccountSection() {
                     variant="outline"
                     onClick={() => {
                         clearEmpId();
+                        clearTenant();
                         navigate('/app', { replace: true });
                         window.location.reload();
                     }}

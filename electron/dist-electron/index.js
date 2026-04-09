@@ -24939,9 +24939,11 @@ const config = {
 };
 const workerFilePath = require$$0$2.resolve(__dirname, "./dbWorker.js");
 const outputPath = config.databaseConfig.outputPath;
+const migrationsPath = require$$0$2.resolve(__dirname, "drizzle", "migrations");
 const worker = new worker_threads.Worker(workerFilePath, {
   workerData: {
-    outputPath
+    outputPath,
+    migrationsPath
   }
 });
 let messageId = 0;
@@ -24952,6 +24954,14 @@ worker.on("message", ({ id: id2, result, error: error2 }) => {
   if (!cb) return;
   pending.delete(id2);
   error2 ? cb.reject(new Error(error2)) : cb.resolve(result);
+});
+worker.on("error", (err) => {
+  console.error("...........worker error", err);
+});
+worker.on("exit", (code2) => {
+  if (code2 !== 0) {
+    console.error(`...........worker stopped with exit code ${code2}`);
+  }
 });
 function callWorker(action, args) {
   console.warn("...........callWorker", action, args);

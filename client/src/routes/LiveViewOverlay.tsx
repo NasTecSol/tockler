@@ -42,14 +42,14 @@ export function LiveViewOverlay() {
                     {isHovering && (
                         <Box bg={overlayBoxBg} borderRadius="lg" boxShadow="xl" maxW="md" p={8} textAlign="left">
                             <Text fontSize="xl" fontWeight="bold" mb={2}>
-                                Live View Active
+                                Checked-In
                             </Text>
                             <Text mb={4} lineHeight="2.5">
-                                The timeline is automatically updating in real-time.
+                                You are currently checked-in and the timeline is updating in real-time.
                                 <br />
                                 It's best to disable it before making edits.
                                 <br />
-                                Click anywhere to disable live view.
+                                Click anywhere to check-out.
                             </Text>
                         </Box>
                     )}

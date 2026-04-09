@@ -5,7 +5,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { appSettings } from '../schema';
-import { db, sqlite } from './db';
+import { db, migrationsPath, sqlite } from './db';
 
 const logger = console;
 
@@ -107,9 +107,9 @@ function removeKnexMigrationTables(sqlite: Database): void {
 export async function connectAndSync(sqlite: Database, db: ReturnType<typeof drizzle>) {
     // Run migrations (if needed)
     try {
-        // Use the default migrations folder location
-        const migrationsFolder = join(__dirname, 'drizzle', 'migrations');
-        logger.debug('Checking migrations at:', migrationsFolder);
+        // Use the passed migrations folder location
+        const migrationsFolder = migrationsPath;
+        logger.info('Running database migrations from:', migrationsFolder);
 
         if (!existsSync(migrationsFolder)) {
             logger.error('Could not find migrations folder');

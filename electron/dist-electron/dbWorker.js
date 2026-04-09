@@ -4652,6 +4652,7 @@ function drizzle(...params) {
   drizzle2.mock = mock;
 })(drizzle || (drizzle = {}));
 const outputPath = worker_threads.workerData.outputPath;
+const migrationsPath = worker_threads.workerData.migrationsPath;
 console.info("real db outputPath", outputPath);
 const sqlite = new Client(outputPath, {
   verbose: process.env["NODE_ENV"] === "development" ? console.log : void 0,
@@ -4728,8 +4729,8 @@ function removeKnexMigrationTables(sqlite2) {
 }
 async function connectAndSync(sqlite2, db2) {
   try {
-    const migrationsFolder = path.join(__dirname, "drizzle", "migrations");
-    logger$3.debug("Checking migrations at:", migrationsFolder);
+    const migrationsFolder = migrationsPath;
+    logger$3.info("Running database migrations from:", migrationsFolder);
     if (!fs$1.existsSync(migrationsFolder)) {
       logger$3.error("Could not find migrations folder");
       throw new Error("Could not find migrations folder");
