@@ -220,6 +220,15 @@ async function findAllFromLastHoursDb(hours: number) {
     return items;
 }
 
+async function findItemsByIdGreaterThan(lastSyncedId: number, limitCount: number) {
+    return await db
+        .select()
+        .from(trackItems)
+        .where(gte(trackItems.id, lastSyncedId + 1))
+        .orderBy(asc(trackItems.id))
+        .limit(limitCount);
+}
+
 export const trackItemService = {
     createTrackItem,
     updateTrackItemDb,
@@ -234,6 +243,7 @@ export const trackItemService = {
     deleteById,
     deleteByIds,
     findAllFromLastHoursDb,
+    findItemsByIdGreaterThan,
 };
 
 export type TrackItemService = typeof trackItemService;

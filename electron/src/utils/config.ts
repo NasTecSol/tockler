@@ -39,6 +39,10 @@ interface StoreType {
         y?: number;
     };
     wasMaximizedOrFullScreen: boolean;
+    empId?: string | null;
+    tenantId?: string | null;
+    token?: string | null;
+    lastSyncedId?: number;
 }
 
 const persisted = new Store<StoreType>();

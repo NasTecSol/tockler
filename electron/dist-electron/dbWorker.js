@@ -4732,9 +4732,10 @@ async function connectAndSync(sqlite2, db2) {
     const migrationsFolder = migrationsPath;
     logger$3.info("Running database migrations from:", migrationsFolder);
     if (!fs$1.existsSync(migrationsFolder)) {
-      logger$3.error("Could not find migrations folder");
+      logger$3.error("Could not find migrations folder at:", migrationsFolder);
       throw new Error("Could not find migrations folder");
     }
+    logger$3.debug("Migrations folder found.");
     const metaDir = path.join(migrationsFolder, "meta");
     if (!fs$1.existsSync(metaDir)) {
       logger$3.debug("Creating meta directory at:", metaDir);
@@ -4743,6 +4744,7 @@ async function connectAndSync(sqlite2, db2) {
     const hasKnexTables = checkForKnexMigrationTables(sqlite2);
     const hasAppTables = checkIfAppTablesExist(sqlite2);
     logger$3.debug("Running migrations from:", migrationsFolder);
+    logger$3.info(`Database status: hasKnexTables=${hasKnexTables}, hasAppTables=${hasAppTables}`);
     if (hasKnexTables && hasAppTables) {
       logger$3.info("Knex migration tables found and app tables already exist. Skipping initial migration.");
       sqlite2.prepare(
@@ -4767,10 +4769,12 @@ async function connectAndSync(sqlite2, db2) {
       }
       removeKnexMigrationTables(sqlite2);
     }
+    logger$3.info("Starting drizzle-orm migrations...");
     migrate(db2, {
       migrationsFolder,
       migrationsTable: "drizzle_migrations"
     });
+    logger$3.info("Drizzle-orm migrations completed.");
     await insertDefaultData(db2);
     logger$3.info("Database connected and migrations applied successfully");
   } catch (error) {
@@ -11922,6 +11926,9 @@ async function findAllFromLastHoursDb(hours) {
   ).orderBy(asc(trackItems.beginDate));
   return items;
 }
+async function findItemsByIdGreaterThan(lastSyncedId, limitCount) {
+  return await db.select().from(trackItems).where(gte(trackItems.id, lastSyncedId + 1)).orderBy(asc(trackItems.id)).limit(limitCount);
+}
 const trackItemService = {
   createTrackItem,
   updateTrackItemDb,
@@ -11935,7 +11942,8 @@ const trackItemService = {
   findById,
   deleteById,
   deleteByIds,
-  findAllFromLastHoursDb
+  findAllFromLastHoursDb,
+  findItemsByIdGreaterThan
 };
 function isSameDay(date1, date2) {
   return date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear();
@@ -12017,11 +12025,50 @@ const trackItemDb = {
   insertNewLogTrackItem
 };
 const actions = Object.assign({}, trackItemService, appSettingService, settingsService, trackItemDb, dbService);
+let isDbReady = false;
+const messageQueue = [];
+async function processQueue() {
+  console.warn("...........dbWorker::processQueue", messageQueue.length);
+  while (messageQueue.length > 0) {
+    const item = messageQueue.shift();
+    if (item) {
+      const { msg, resolve } = item;
+      try {
+        const result = await actions[msg.action](...msg.args);
+        resolve({ id: msg.id, result });
+      } catch (error) {
+        resolve({ id: msg.id, error: error.message });
+      }
+    }
+  }
+}
 worker_threads.parentPort.on(
   "message",
   async (msg) => {
     console.warn("...........dbWorker::message", msg);
     const { id, action, args } = msg;
+    if (action === "initDb") {
+      try {
+        const result = await actions[action](...args);
+        isDbReady = true;
+        console.warn("...........dbWorker::initDb result", result);
+        worker_threads.parentPort.postMessage({ id, result });
+        await processQueue();
+      } catch (error) {
+        console.warn("...........dbWorker::initDb error", error);
+        worker_threads.parentPort.postMessage({ id, error: error.message });
+      }
+      return;
+    }
+    if (!isDbReady) {
+      console.warn(`...........dbWorker::queueing message ${action} while DB is initializing`);
+      new Promise((resolve) => {
+        messageQueue.push({ msg, resolve });
+      }).then((response) => {
+        worker_threads.parentPort.postMessage(response);
+      });
+      return;
+    }
     try {
       const result = await actions[action](...args);
       console.warn("...........dbWorker::result", result);

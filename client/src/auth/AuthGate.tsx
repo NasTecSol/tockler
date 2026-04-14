@@ -13,7 +13,7 @@ import {
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { employeeLogin } from '../services/employee-login.api';
 import { ResponseError } from '../services/response-error';
-import { getSavedEmpId, getSavedTenant, saveEmpId, saveTenant } from './authStorage';
+import { getSavedEmpId, getSavedTenant, saveEmpId, saveTenant, saveToken } from './authStorage';
 
 function getMacAddressCandidate(): string {
     try {
@@ -78,14 +78,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
         setIsSubmitting(true);
         try {
-            await employeeLogin({
+            const responseData: any = await employeeLogin({
                 tenant: tenant.trim(),
                 empId: empId.trim(),
                 password,
                 macAddress: getMacAddressCandidate(),
             });
+
             saveTenant(tenant.trim());
             saveEmpId(empId.trim());
+
+            if (responseData?.data?.token) {
+                saveToken(responseData.data.token);
+            }
+
             setIsAuthed(true);
             toast({
                 title: 'Logged in',

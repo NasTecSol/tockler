@@ -112,9 +112,10 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
         logger.info('Running database migrations from:', migrationsFolder);
 
         if (!existsSync(migrationsFolder)) {
-            logger.error('Could not find migrations folder');
+            logger.error('Could not find migrations folder at:', migrationsFolder);
             throw new Error('Could not find migrations folder');
         }
+        logger.debug('Migrations folder found.');
 
         // Check if the meta directory exists and create it if it doesn't
         const metaDir = join(migrationsFolder, 'meta');
@@ -129,6 +130,7 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
 
         // Apply migrations with the default settings
         logger.debug('Running migrations from:', migrationsFolder);
+        logger.info(`Database status: hasKnexTables=${hasKnexTables}, hasAppTables=${hasAppTables}`);
 
         if (hasKnexTables && hasAppTables) {
             logger.info('Knex migration tables found and app tables already exist. Skipping initial migration.');
@@ -180,10 +182,12 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
         }
 
         // Run migrations - this will skip already applied migrations
+        logger.info('Starting drizzle-orm migrations...');
         migrate(db, {
             migrationsFolder,
             migrationsTable: 'drizzle_migrations',
         });
+        logger.info('Drizzle-orm migrations completed.');
 
         // Insert default data after migrations complete
         await insertDefaultData(db);

@@ -117,7 +117,7 @@ const mainStore = createStore<StoreModel>({
         const { timerange, visibleTimerange } = getState();
         Logger.debug('Loading timerange:', JSON.stringify(timerange));
         actions.setIsLoading(true);
-        const { appItems, statusItems, logItems } = await findAllDayItemsForEveryTrack(timerange[0], timerange[1]);
+        const { appItems = [], statusItems = [], logItems = [] } = (await findAllDayItemsForEveryTrack(timerange[0], timerange[1])) || {};
 
         const updatedTimeItems = {
             [TrackItemType.AppTrackItem]: appItems,
@@ -143,10 +143,10 @@ const mainStore = createStore<StoreModel>({
     bgSync: thunk(async (actions, requestFrom, { getState }) => {
         Logger.debug('Requesting from:', JSON.stringify(requestFrom));
         const { timeItems } = getState();
-        const { appItems, statusItems, logItems } = await findAllDayItemsForEveryTrack(
+        const { appItems = [], statusItems = [], logItems = [] } = (await findAllDayItemsForEveryTrack(
             requestFrom,
             requestFrom.endOf('day'),
-        );
+        )) || {};
         Logger.debug('Returned updated items:', appItems);
 
         const payload = {

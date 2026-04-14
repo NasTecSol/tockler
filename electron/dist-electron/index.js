@@ -26654,7 +26654,7 @@ var Logger = (
   }()
 );
 global$5.__SENTRY__ = global$5.__SENTRY__ || {};
-var logger$j = global$5.__SENTRY__.logger || (global$5.__SENTRY__.logger = new Logger());
+var logger$k = global$5.__SENTRY__.logger || (global$5.__SENTRY__.logger = new Logger());
 var Memo = (
   /** @class */
   function() {
@@ -26968,7 +26968,7 @@ function supportsNativeFetch() {
       }
       doc.head.removeChild(sandbox);
     } catch (err) {
-      logger$j.warn("Could not create sandbox iframe for pure fetch check, bailing to window.fetch: ", err);
+      logger$k.warn("Could not create sandbox iframe for pure fetch check, bailing to window.fetch: ", err);
     }
   }
   return result;
@@ -27011,7 +27011,7 @@ function instrument(type2) {
       instrumentUnhandledRejection();
       break;
     default:
-      logger$j.warn("unknown instrumentation type:", type2);
+      logger$k.warn("unknown instrumentation type:", type2);
   }
 }
 function addInstrumentationHandler(handler) {
@@ -27033,7 +27033,7 @@ function triggerHandlers(type2, data) {
       try {
         handler(data);
       } catch (e) {
-        logger$j.error("Error while triggering instrumentation handler.\nType: " + type2 + "\nName: " + getFunctionName(handler) + "\nError: " + e);
+        logger$k.error("Error while triggering instrumentation handler.\nType: " + type2 + "\nName: " + getFunctionName(handler) + "\nError: " + e);
       }
     }
   } catch (e_1_1) {
@@ -28278,7 +28278,7 @@ var Hub = (
       try {
         return client.getIntegration(integration);
       } catch (_oO) {
-        logger$j.warn("Cannot retrieve integration " + integration.id + " from the current Hub");
+        logger$k.warn("Cannot retrieve integration " + integration.id + " from the current Hub");
         return null;
       }
     };
@@ -28355,7 +28355,7 @@ var Hub = (
       if (sentry && sentry.extensions && typeof sentry.extensions[method] === "function") {
         return sentry.extensions[method].apply(this, args);
       }
-      logger$j.warn("Extension method " + method + " couldn't be found, doing nothing.");
+      logger$k.warn("Extension method " + method + " couldn't be found, doing nothing.");
     };
     return Hub2;
   }()
@@ -28433,11 +28433,11 @@ var SessionFlusher = (
     }
     SessionFlusher2.prototype.sendSessionAggregates = function(sessionAggregates) {
       if (!this._transport.sendSession) {
-        logger$j.warn("Dropping session because custom transport doesn't implement sendSession");
+        logger$k.warn("Dropping session because custom transport doesn't implement sendSession");
         return;
       }
       void this._transport.sendSession(sessionAggregates).then(null, function(reason) {
-        logger$j.error("Error while sending session: " + reason);
+        logger$k.error("Error while sending session: " + reason);
       });
     };
     SessionFlusher2.prototype.flush = function() {
@@ -28701,7 +28701,7 @@ function setupIntegration(integration) {
   }
   integration.setupOnce(addGlobalEventProcessor, getCurrentHub);
   installedIntegrations.push(integration.name);
-  logger$j.log("Integration installed: " + integration.name);
+  logger$k.log("Integration installed: " + integration.name);
 }
 function setupIntegrations(options) {
   var integrations = {};
@@ -28753,7 +28753,7 @@ var BaseClient = (
     };
     BaseClient2.prototype.captureSession = function(session) {
       if (!(typeof session.release === "string")) {
-        logger$j.warn("Discarded session because of missing or non-string release");
+        logger$k.warn("Discarded session because of missing or non-string release");
       } else {
         this._sendSession(session);
         session.update({ init: false });
@@ -28789,7 +28789,7 @@ var BaseClient = (
       try {
         return this._integrations[integration.id] || null;
       } catch (_oO) {
-        logger$j.warn("Cannot retrieve integration " + integration.id + " from the current Client");
+        logger$k.warn("Cannot retrieve integration " + integration.id + " from the current Client");
         return null;
       }
     };
@@ -28946,7 +28946,7 @@ var BaseClient = (
       return this._processEvent(event, hint, scope2).then(function(finalEvent) {
         return finalEvent.event_id;
       }, function(reason) {
-        logger$j.error(reason);
+        logger$k.error(reason);
         return void 0;
       });
     };
@@ -29039,7 +29039,7 @@ var BaseBackend = (
     function BaseBackend2(options) {
       this._options = options;
       if (!this._options.dsn) {
-        logger$j.warn("No DSN provided, backend will not do anything.");
+        logger$k.warn("No DSN provided, backend will not do anything.");
       }
       this._transport = this._setupTransport();
     }
@@ -29051,16 +29051,16 @@ var BaseBackend = (
     };
     BaseBackend2.prototype.sendEvent = function(event) {
       void this._transport.sendEvent(event).then(null, function(reason) {
-        logger$j.error("Error while sending event: " + reason);
+        logger$k.error("Error while sending event: " + reason);
       });
     };
     BaseBackend2.prototype.sendSession = function(session) {
       if (!this._transport.sendSession) {
-        logger$j.warn("Dropping session because custom transport doesn't implement sendSession");
+        logger$k.warn("Dropping session because custom transport doesn't implement sendSession");
         return;
       }
       void this._transport.sendSession(session).then(null, function(reason) {
-        logger$j.error("Error while sending session: " + reason);
+        logger$k.error("Error while sending session: " + reason);
       });
     };
     BaseBackend2.prototype.getTransport = function() {
@@ -29135,7 +29135,7 @@ function eventToSentryRequest(event, api) {
 function initAndBind(clientClass, options) {
   var _a;
   if (options.debug === true) {
-    logger$j.enable();
+    logger$k.enable();
   }
   var hub = getCurrentHub();
   (_a = hub.getScope()) === null || _a === void 0 ? void 0 : _a.update(options.initialScope);
@@ -29197,19 +29197,19 @@ var InboundFilters = (
     };
     InboundFilters2.prototype._shouldDropEvent = function(event, options) {
       if (this._isSentryError(event, options)) {
-        logger$j.warn("Event dropped due to being internal Sentry Error.\nEvent: " + getEventDescription(event));
+        logger$k.warn("Event dropped due to being internal Sentry Error.\nEvent: " + getEventDescription(event));
         return true;
       }
       if (this._isIgnoredError(event, options)) {
-        logger$j.warn("Event dropped due to being matched by `ignoreErrors` option.\nEvent: " + getEventDescription(event));
+        logger$k.warn("Event dropped due to being matched by `ignoreErrors` option.\nEvent: " + getEventDescription(event));
         return true;
       }
       if (this._isDeniedUrl(event, options)) {
-        logger$j.warn("Event dropped due to being matched by `denyUrls` option.\nEvent: " + getEventDescription(event) + ".\nUrl: " + this._getEventFilterUrl(event));
+        logger$k.warn("Event dropped due to being matched by `denyUrls` option.\nEvent: " + getEventDescription(event) + ".\nUrl: " + this._getEventFilterUrl(event));
         return true;
       }
       if (!this._isAllowedUrl(event, options)) {
-        logger$j.warn("Event dropped due to not being matched by `allowUrls` option.\nEvent: " + getEventDescription(event) + ".\nUrl: " + this._getEventFilterUrl(event));
+        logger$k.warn("Event dropped due to not being matched by `allowUrls` option.\nEvent: " + getEventDescription(event) + ".\nUrl: " + this._getEventFilterUrl(event));
         return true;
       }
       return false;
@@ -29272,7 +29272,7 @@ var InboundFilters = (
           var _a = event.exception.values && event.exception.values[0] || {}, _b = _a.type, type2 = _b === void 0 ? "" : _b, _c = _a.value, value = _c === void 0 ? "" : _c;
           return ["" + value, type2 + ": " + value];
         } catch (oO) {
-          logger$j.error("Cannot extract message for event " + getEventDescription(event));
+          logger$k.error("Cannot extract message for event " + getEventDescription(event));
           return [];
         }
       }
@@ -29290,7 +29290,7 @@ var InboundFilters = (
         }
         return null;
       } catch (oO) {
-        logger$j.error("Cannot extract url for event " + getEventDescription(event));
+        logger$k.error("Cannot extract url for event " + getEventDescription(event));
         return null;
       }
     };
@@ -29940,7 +29940,7 @@ var BaseTransport = (
               };
               var limited = _this._handleRateLimit(headers);
               if (limited)
-                logger$j.warn("Too many requests, backing off until: " + _this._disabledUntil(sentryReq.type));
+                logger$k.warn("Too many requests, backing off until: " + _this._disabledUntil(sentryReq.type));
               if (status === Status.Success) {
                 resolve2({ status });
               } else {
@@ -30134,7 +30134,7 @@ var NodeBackend = (
   NodeClient.prototype.initSessionFlusher = function() {
     var _a = this._options, release = _a.release, environment = _a.environment;
     if (!release) {
-      logger$j.warn("Cannot initialise an instance of SessionFlusher if no release is provided!");
+      logger$k.warn("Cannot initialise an instance of SessionFlusher if no release is provided!");
     } else {
       this._sessionFlusher = new SessionFlusher(this._backend.getTransport(), {
         release,
@@ -30151,7 +30151,7 @@ var NodeBackend = (
   };
   NodeClient.prototype._captureRequestSession = function() {
     if (!this._sessionFlusher) {
-      logger$j.warn("Discarded request mode session because autoSessionTracking option was disabled");
+      logger$k.warn("Discarded request mode session because autoSessionTracking option was disabled");
     } else {
       this._sessionFlusher.incrementSessionStatusCount();
     }
@@ -30340,7 +30340,7 @@ function _createWrappedRequestMethodFactory(breadcrumbsEnabled, tracingEnabled) 
             op: "request"
           });
           var sentryTraceHeader = span.toTraceparent();
-          logger$j.log("[Tracing] Adding sentry-trace header " + sentryTraceHeader + " to outgoing request to " + requestUrl + ": ");
+          logger$k.log("[Tracing] Adding sentry-trace header " + sentryTraceHeader + " to outgoing request to " + requestUrl + ": ");
           requestOptions.headers = __assign(__assign({}, requestOptions.headers), { "sentry-trace": sentryTraceHeader });
         }
       }
@@ -30393,7 +30393,7 @@ function logAndExitProcess(error2) {
   console.error(error2 && error2.stack ? error2.stack : error2);
   var client = getCurrentHub().getClient();
   if (client === void 0) {
-    logger$j.warn("No NodeClient was defined, we are exiting the process now.");
+    logger$k.warn("No NodeClient was defined, we are exiting the process now.");
     global.process.exit(1);
     return;
   }
@@ -30401,7 +30401,7 @@ function logAndExitProcess(error2) {
   var timeout = options && options.shutdownTimeout && options.shutdownTimeout > 0 && options.shutdownTimeout || DEFAULT_SHUTDOWN_TIMEOUT;
   forget(client.close(timeout).then(function(result) {
     if (!result) {
-      logger$j.warn("We reached the timeout for emptying the request buffer, still exiting now!");
+      logger$k.warn("We reached the timeout for emptying the request buffer, still exiting now!");
     }
     global.process.exit(1);
   }));
@@ -30458,7 +30458,7 @@ var OnUncaughtException$1 = (
             }
           }
         } else if (calledFatalError) {
-          logger$j.warn("uncaught exception after calling fatal error shutdown callback - this is bad! forcing shutdown");
+          logger$k.warn("uncaught exception after calling fatal error shutdown callback - this is bad! forcing shutdown");
           logAndExitProcess(error2);
         } else if (!caughtSecondError) {
           caughtSecondError = true;
@@ -30791,7 +30791,7 @@ function registerErrorInstrumentation() {
 function errorCallback() {
   var activeTransaction = getActiveTransaction();
   if (activeTransaction) {
-    logger$j.log("[Tracing] Transaction: " + SpanStatus.InternalError + " -> Global error occured");
+    logger$k.log("[Tracing] Transaction: " + SpanStatus.InternalError + " -> Global error occured");
     activeTransaction.setStatus(SpanStatus.InternalError);
   }
 }
@@ -31008,12 +31008,12 @@ var Transaction = (
         return void 0;
       }
       if (!this.name) {
-        logger$j.warn("Transaction has no name, falling back to `<unlabeled transaction>`.");
+        logger$k.warn("Transaction has no name, falling back to `<unlabeled transaction>`.");
         this.name = "<unlabeled transaction>";
       }
       _super.prototype.finish.call(this, endTimestamp);
       if (this.sampled !== true) {
-        logger$j.log("[Tracing] Discarding transaction because its trace was not chosen to be sampled.");
+        logger$k.log("[Tracing] Discarding transaction because its trace was not chosen to be sampled.");
         return void 0;
       }
       var finishedSpans = this.spanRecorder ? this.spanRecorder.spans.filter(function(s2) {
@@ -31041,10 +31041,10 @@ var Transaction = (
       };
       var hasMeasurements = Object.keys(this._measurements).length > 0;
       if (hasMeasurements) {
-        logger$j.log("[Measurements] Adding measurements to transaction", JSON.stringify(this._measurements, void 0, 2));
+        logger$k.log("[Measurements] Adding measurements to transaction", JSON.stringify(this._measurements, void 0, 2));
         transaction.measurements = this._measurements;
       }
-      logger$j.log("[Tracing] Finishing " + this.op + " transaction: " + this.name + ".");
+      logger$k.log("[Tracing] Finishing " + this.op + " transaction: " + this.name + ".");
       return this._hub.captureEvent(transaction);
     };
     Transaction2.prototype.toContext = function() {
@@ -31114,7 +31114,7 @@ var IdleTransaction = (
       _this._beforeFinishCallbacks = [];
       if (_idleHub && _onScope) {
         clearActiveTransaction(_idleHub);
-        logger$j.log("Setting idle transaction on scope. Span ID: " + _this.spanId);
+        logger$k.log("Setting idle transaction on scope. Span ID: " + _this.spanId);
         _idleHub.configureScope(function(scope2) {
           return scope2.setSpan(_this);
         });
@@ -31135,7 +31135,7 @@ var IdleTransaction = (
       this._finished = true;
       this.activities = {};
       if (this.spanRecorder) {
-        logger$j.log("[Tracing] finishing IdleTransaction", new Date(endTimestamp * 1e3).toISOString(), this.op);
+        logger$k.log("[Tracing] finishing IdleTransaction", new Date(endTimestamp * 1e3).toISOString(), this.op);
         try {
           for (var _b = __values(this._beforeFinishCallbacks), _c = _b.next(); !_c.done; _c = _b.next()) {
             var callback = _c.value;
@@ -31157,17 +31157,17 @@ var IdleTransaction = (
           if (!span.endTimestamp) {
             span.endTimestamp = endTimestamp;
             span.setStatus(SpanStatus.Cancelled);
-            logger$j.log("[Tracing] cancelling span since transaction ended early", JSON.stringify(span, void 0, 2));
+            logger$k.log("[Tracing] cancelling span since transaction ended early", JSON.stringify(span, void 0, 2));
           }
           var keepSpan = span.startTimestamp < endTimestamp;
           if (!keepSpan) {
-            logger$j.log("[Tracing] discarding Span since it happened after Transaction was finished", JSON.stringify(span, void 0, 2));
+            logger$k.log("[Tracing] discarding Span since it happened after Transaction was finished", JSON.stringify(span, void 0, 2));
           }
           return keepSpan;
         });
-        logger$j.log("[Tracing] flushing IdleTransaction");
+        logger$k.log("[Tracing] flushing IdleTransaction");
       } else {
-        logger$j.log("[Tracing] No active IdleTransaction");
+        logger$k.log("[Tracing] No active IdleTransaction");
       }
       if (this._onScope) {
         clearActiveTransaction(this._idleHub);
@@ -31193,7 +31193,7 @@ var IdleTransaction = (
           _this._popActivity(id2);
         };
         this.spanRecorder = new IdleTransactionSpanRecorder(pushActivity, popActivity, this.spanId, maxlen);
-        logger$j.log("Starting heartbeat");
+        logger$k.log("Starting heartbeat");
         this._pingHeartbeat();
       }
       this.spanRecorder.add(this);
@@ -31203,16 +31203,16 @@ var IdleTransaction = (
         clearTimeout(this._initTimeout);
         this._initTimeout = void 0;
       }
-      logger$j.log("[Tracing] pushActivity: " + spanId);
+      logger$k.log("[Tracing] pushActivity: " + spanId);
       this.activities[spanId] = true;
-      logger$j.log("[Tracing] new activities count", Object.keys(this.activities).length);
+      logger$k.log("[Tracing] new activities count", Object.keys(this.activities).length);
     };
     IdleTransaction2.prototype._popActivity = function(spanId) {
       var _this = this;
       if (this.activities[spanId]) {
-        logger$j.log("[Tracing] popActivity " + spanId);
+        logger$k.log("[Tracing] popActivity " + spanId);
         delete this.activities[spanId];
-        logger$j.log("[Tracing] new activities count", Object.keys(this.activities).length);
+        logger$k.log("[Tracing] new activities count", Object.keys(this.activities).length);
       }
       if (Object.keys(this.activities).length === 0) {
         var timeout = this._idleTimeout;
@@ -31240,7 +31240,7 @@ var IdleTransaction = (
       }
       this._prevHeartbeatString = heartbeatString;
       if (this._heartbeatCounter >= 3) {
-        logger$j.log("[Tracing] Transaction finished because of no change for 3 heart beats");
+        logger$k.log("[Tracing] Transaction finished because of no change for 3 heart beats");
         this.setStatus(SpanStatus.DeadlineExceeded);
         this.setTag("heartbeat", "failed");
         this.finish();
@@ -31250,7 +31250,7 @@ var IdleTransaction = (
     };
     IdleTransaction2.prototype._pingHeartbeat = function() {
       var _this = this;
-      logger$j.log("pinging Heartbeat -> current counter: " + this._heartbeatCounter);
+      logger$k.log("pinging Heartbeat -> current counter: " + this._heartbeatCounter);
       this._heartbeatTimer = setTimeout(function() {
         _this._beat();
       }, 5e3);
@@ -31318,30 +31318,30 @@ function sample(transaction, options, samplingContext) {
     });
   }
   if (!isValidSampleRate(sampleRate)) {
-    logger$j.warn("[Tracing] Discarding transaction because of invalid sample rate.");
+    logger$k.warn("[Tracing] Discarding transaction because of invalid sample rate.");
     transaction.sampled = false;
     return transaction;
   }
   if (!sampleRate) {
-    logger$j.log("[Tracing] Discarding transaction because " + (typeof options.tracesSampler === "function" ? "tracesSampler returned 0 or false" : "a negative sampling decision was inherited or tracesSampleRate is set to 0"));
+    logger$k.log("[Tracing] Discarding transaction because " + (typeof options.tracesSampler === "function" ? "tracesSampler returned 0 or false" : "a negative sampling decision was inherited or tracesSampleRate is set to 0"));
     transaction.sampled = false;
     return transaction;
   }
   transaction.sampled = Math.random() < sampleRate;
   if (!transaction.sampled) {
-    logger$j.log("[Tracing] Discarding transaction because it's not included in the random sample (sampling rate = " + Number(sampleRate) + ")");
+    logger$k.log("[Tracing] Discarding transaction because it's not included in the random sample (sampling rate = " + Number(sampleRate) + ")");
     return transaction;
   }
-  logger$j.log("[Tracing] starting " + transaction.op + " transaction - " + transaction.name);
+  logger$k.log("[Tracing] starting " + transaction.op + " transaction - " + transaction.name);
   return transaction;
 }
 function isValidSampleRate(rate) {
   if (isNaN(rate) || !(typeof rate === "number" || typeof rate === "boolean")) {
-    logger$j.warn("[Tracing] Given sample rate is invalid. Sample rate must be a boolean or a number between 0 and 1. Got " + JSON.stringify(rate) + " of type " + JSON.stringify(typeof rate) + ".");
+    logger$k.warn("[Tracing] Given sample rate is invalid. Sample rate must be a boolean or a number between 0 and 1. Got " + JSON.stringify(rate) + " of type " + JSON.stringify(typeof rate) + ".");
     return false;
   }
   if (rate < 0 || rate > 1) {
-    logger$j.warn("[Tracing] Given sample rate is invalid. Sample rate must be between 0 and 1. Got " + rate + ".");
+    logger$k.warn("[Tracing] Given sample rate is invalid. Sample rate must be between 0 and 1. Got " + rate + ".");
     return false;
   }
   return true;
@@ -31430,7 +31430,7 @@ function registerBackgroundTabDetection() {
     global$3.document.addEventListener("visibilitychange", function() {
       var activeTransaction = getActiveTransaction();
       if (global$3.document.hidden && activeTransaction) {
-        logger$j.log("[Tracing] Transaction: " + SpanStatus.Cancelled + " -> since tab moved to the background, op: " + activeTransaction.op);
+        logger$k.log("[Tracing] Transaction: " + SpanStatus.Cancelled + " -> since tab moved to the background, op: " + activeTransaction.op);
         if (!activeTransaction.status) {
           activeTransaction.setStatus(SpanStatus.Cancelled);
         }
@@ -31439,7 +31439,7 @@ function registerBackgroundTabDetection() {
       }
     });
   } else {
-    logger$j.warn("[Tracing] Could not set up background tab detection due to lack of global document");
+    logger$k.warn("[Tracing] Could not set up background tab detection due to lack of global document");
   }
 }
 var bindReporter = function(callback, metric, po, observeAllUpdates) {
@@ -31662,7 +31662,7 @@ var MetricsInstrumentation = (
       if (!global$2 || !global$2.performance || !global$2.performance.getEntries || !browserPerformanceTimeOrigin) {
         return;
       }
-      logger$j.log("[Tracing] Adding & adjusting spans using Performance API");
+      logger$k.log("[Tracing] Adding & adjusting spans using Performance API");
       var timeOrigin = msToSec(browserPerformanceTimeOrigin);
       var entryScriptSrc;
       if (global$2.document) {
@@ -31700,12 +31700,12 @@ var MetricsInstrumentation = (
             var firstHidden = getFirstHidden();
             var shouldRecord = entry.startTime < firstHidden.timeStamp;
             if (entry.name === "first-paint" && shouldRecord) {
-              logger$j.log("[Measurements] Adding FP");
+              logger$k.log("[Measurements] Adding FP");
               _this._measurements["fp"] = { value: entry.startTime };
               _this._measurements["mark.fp"] = { value: startTimestamp };
             }
             if (entry.name === "first-contentful-paint" && shouldRecord) {
-              logger$j.log("[Measurements] Adding FCP");
+              logger$k.log("[Measurements] Adding FCP");
               _this._measurements["fcp"] = { value: entry.startTime };
               _this._measurements["mark.fcp"] = { value: startTimestamp };
             }
@@ -31734,7 +31734,7 @@ var MetricsInstrumentation = (
       if (transaction.op === "pageload") {
         var timeOrigin_1 = msToSec(browserPerformanceTimeOrigin);
         if (typeof responseStartTimestamp === "number") {
-          logger$j.log("[Measurements] Adding TTFB");
+          logger$k.log("[Measurements] Adding TTFB");
           this._measurements["ttfb"] = { value: (responseStartTimestamp - transaction.startTimestamp) * 1e3 };
           if (typeof requestStartTimestamp === "number" && requestStartTimestamp <= responseStartTimestamp) {
             this._measurements["ttfb.requestTime"] = { value: (responseStartTimestamp - requestStartTimestamp) * 1e3 };
@@ -31748,7 +31748,7 @@ var MetricsInstrumentation = (
           var measurementTimestamp = timeOrigin_1 + msToSec(oldValue);
           var normalizedValue = Math.abs((measurementTimestamp - transaction.startTimestamp) * 1e3);
           var delta = normalizedValue - oldValue;
-          logger$j.log("[Measurements] Normalized " + name + " from " + oldValue + " to " + normalizedValue + " (" + delta + ")");
+          logger$k.log("[Measurements] Normalized " + name + " from " + oldValue + " to " + normalizedValue + " (" + delta + ")");
           _this._measurements[name].value = normalizedValue;
         });
         if (this._measurements["mark.fid"] && this._measurements["fid"]) {
@@ -31761,7 +31761,7 @@ var MetricsInstrumentation = (
         }
         transaction.setMeasurements(this._measurements);
         if (this._lcpEntry) {
-          logger$j.log("[Measurements] Adding LCP Data");
+          logger$k.log("[Measurements] Adding LCP Data");
           if (this._lcpEntry.element) {
             transaction.setTag("lcp.element", htmlTreeAsString(this._lcpEntry.element));
           }
@@ -31782,7 +31782,7 @@ var MetricsInstrumentation = (
         if (!entry) {
           return;
         }
-        logger$j.log("[Measurements] Adding CLS");
+        logger$k.log("[Measurements] Adding CLS");
         _this._measurements["cls"] = { value: metric.value };
       });
     };
@@ -31822,7 +31822,7 @@ var MetricsInstrumentation = (
         }
         var timeOrigin = msToSec(browserPerformanceTimeOrigin);
         var startTime = msToSec(entry.startTime);
-        logger$j.log("[Measurements] Adding LCP");
+        logger$k.log("[Measurements] Adding LCP");
         _this._measurements["lcp"] = { value: metric.value };
         _this._measurements["mark.lcp"] = { value: timeOrigin + startTime };
         _this._lcpEntry = entry;
@@ -31837,7 +31837,7 @@ var MetricsInstrumentation = (
         }
         var timeOrigin = msToSec(browserPerformanceTimeOrigin);
         var startTime = msToSec(entry.startTime);
-        logger$j.log("[Measurements] Adding FID");
+        logger$k.log("[Measurements] Adding FID");
         _this._measurements["fid"] = { value: metric.value };
         _this._measurements["mark.fid"] = { value: timeOrigin + startTime };
       });
@@ -32074,7 +32074,7 @@ function instrumentRoutingWithDefaults(customStartTransaction, startTransactionO
     startTransactionOnLocationChange = true;
   }
   if (!global$1 || !global$1.location) {
-    logger$j.warn("Could not initialize routing instrumentation due to invalid location");
+    logger$k.warn("Could not initialize routing instrumentation due to invalid location");
     return;
   }
   var startingUrl = global$1.location.href;
@@ -32093,7 +32093,7 @@ function instrumentRoutingWithDefaults(customStartTransaction, startTransactionO
         if (from2 !== to2) {
           startingUrl = void 0;
           if (activeTransaction) {
-            logger$j.log("[Tracing] Finishing current transaction with op: " + activeTransaction.op);
+            logger$k.log("[Tracing] Finishing current transaction with op: " + activeTransaction.op);
             activeTransaction.finish();
           }
           activeTransaction = customStartTransaction({ name: global$1.location.pathname, op: "navigation" });
@@ -32124,8 +32124,8 @@ var BrowserTracing = (
       var _this = this;
       this._getCurrentHub = getCurrentHub2;
       if (this._emitOptionsWarning) {
-        logger$j.warn("[Tracing] You need to define `tracingOrigins` in the options. Set an array of urls or patterns to trace.");
-        logger$j.warn("[Tracing] We added a reasonable default for you: " + defaultRequestInstrumentationOptions.tracingOrigins);
+        logger$k.warn("[Tracing] You need to define `tracingOrigins` in the options. Set an array of urls or patterns to trace.");
+        logger$k.warn("[Tracing] We added a reasonable default for you: " + defaultRequestInstrumentationOptions.tracingOrigins);
       }
       var _a = this.options, instrumentRouting = _a.routingInstrumentation, startTransactionOnLocationChange = _a.startTransactionOnLocationChange, startTransactionOnPageLoad = _a.startTransactionOnPageLoad, markBackgroundTransactions = _a.markBackgroundTransactions, traceFetch = _a.traceFetch, traceXHR = _a.traceXHR, tracingOrigins = _a.tracingOrigins, shouldCreateSpanForRequest = _a.shouldCreateSpanForRequest;
       instrumentRouting(function(context) {
@@ -32139,7 +32139,7 @@ var BrowserTracing = (
     BrowserTracing2.prototype._createRouteTransaction = function(context) {
       var _this = this;
       if (!this._getCurrentHub) {
-        logger$j.warn("[Tracing] Did not create " + context.op + " transaction because _getCurrentHub is invalid.");
+        logger$k.warn("[Tracing] Did not create " + context.op + " transaction because _getCurrentHub is invalid.");
         return void 0;
       }
       var _a = this.options, beforeNavigate = _a.beforeNavigate, idleTimeout = _a.idleTimeout, maxTransactionDuration = _a.maxTransactionDuration;
@@ -32148,9 +32148,9 @@ var BrowserTracing = (
       var modifiedContext = typeof beforeNavigate === "function" ? beforeNavigate(expandedContext) : expandedContext;
       var finalContext = modifiedContext === void 0 ? __assign(__assign({}, expandedContext), { sampled: false }) : modifiedContext;
       if (finalContext.sampled === false) {
-        logger$j.log("[Tracing] Will not send " + finalContext.op + " transaction because of beforeNavigate.");
+        logger$k.log("[Tracing] Will not send " + finalContext.op + " transaction because of beforeNavigate.");
       }
-      logger$j.log("[Tracing] Starting " + finalContext.op + " transaction on scope");
+      logger$k.log("[Tracing] Starting " + finalContext.op + " transaction on scope");
       var hub = this._getCurrentHub();
       var location = getGlobalObject().location;
       var idleTransaction = startIdleTransaction(hub, finalContext, idleTimeout, true, { location });
@@ -32196,7 +32196,7 @@ var Express = (
     }
     Express2.prototype.setupOnce = function() {
       if (!this._router) {
-        logger$j.error("ExpressIntegration is missing an Express instance");
+        logger$k.error("ExpressIntegration is missing an Express instance");
         return;
       }
       instrumentMiddlewares(this._router, this._methods);
@@ -32310,7 +32310,7 @@ var Postgres = (
     Postgres2.prototype.setupOnce = function(_, getCurrentHub2) {
       var pkg = loadModule("pg");
       if (!pkg) {
-        logger$j.error("Postgres Integration was unable to require `pg` package.");
+        logger$k.error("Postgres Integration was unable to require `pg` package.");
         return;
       }
       fill(pkg.Client.prototype, "query", function(orig) {
@@ -32362,7 +32362,7 @@ var Mysql = (
     Mysql2.prototype.setupOnce = function(_, getCurrentHub2) {
       var pkg = loadModule("mysql/lib/Connection.js");
       if (!pkg) {
-        logger$j.error("Mysql Integration was unable to require `mysql` package.");
+        logger$k.error("Mysql Integration was unable to require `mysql` package.");
         return;
       }
       fill(pkg, "createQuery", function(orig) {
@@ -32471,7 +32471,7 @@ var Mongo = (
       var moduleName = this._useMongoose ? "mongoose" : "mongodb";
       var pkg = loadModule(moduleName);
       if (!pkg) {
-        logger$j.error("Mongo Integration was unable to require `" + moduleName + "` package.");
+        logger$k.error("Mongo Integration was unable to require `" + moduleName + "` package.");
         return;
       }
       this._instrumentOperations(pkg.Collection, this._operations, getCurrentHub2);
@@ -33180,7 +33180,7 @@ var Store = (
         mkdirpSync(require$$0$2.dirname(this._path));
         require$$1$1.writeFileSync(this._path, JSON.stringify(this._data));
       } catch (e) {
-        logger$j.warn("Failed to flush store", e);
+        logger$k.warn("Failed to flush store", e);
       } finally {
         this._flushing = false;
       }
@@ -33278,7 +33278,7 @@ var NetTransport = (
                       };
                       var limited = _this._handleRateLimit(headers);
                       if (limited)
-                        logger$j.warn("Too many requests, backing off until: " + _this._disabledUntil(request.type));
+                        logger$k.warn("Too many requests, backing off until: " + _this._disabledUntil(request.type));
                     }
                     if (res.headers && res.headers["x-sentry-error"]) {
                       var reason = res.headers["x-sentry-error"];
@@ -33330,14 +33330,14 @@ var MinidumpUploader = (
           switch (_a.label) {
             case 0:
               if (typeof this._transport.sendRequest !== "function") {
-                logger$j.warn("Your transport doesn't implement sendRequest");
-                logger$j.warn("Skipping sending minidump");
+                logger$k.warn("Your transport doesn't implement sendRequest");
+                logger$k.warn("Skipping sending minidump");
                 return [
                   2
                   /*return*/
                 ];
               }
-              logger$j.log("Sending minidump", request.path);
+              logger$k.log("Sending minidump", request.path);
               transport = this._transport;
               _a.label = 1;
             case 1:
@@ -33359,7 +33359,7 @@ var MinidumpUploader = (
               return [3, 7];
             case 6:
               _a.sent();
-              logger$j.warn("Could not delete", request.path);
+              logger$k.warn("Could not delete", request.path);
               return [3, 7];
             case 7:
               this._queue.update(function(queued) {
@@ -33377,7 +33377,7 @@ var MinidumpUploader = (
               return [3, 13];
             case 10:
               err_1 = _a.sent();
-              logger$j.warn("Failed to upload minidump", err_1);
+              logger$k.warn("Failed to upload minidump", err_1);
               error2 = err_1 ? err_1 : { code: "" };
               if (!(error2.code === "ENOTFOUND")) return [3, 12];
               return [4, this._queueMinidump(request)];
@@ -33414,7 +33414,7 @@ var MinidumpUploader = (
               _b.label = 4;
             case 4:
               minidumps = _a;
-              logger$j.log("Found " + minidumps.length + " minidumps");
+              logger$k.log("Found " + minidumps.length + " minidumps");
               oldestMs = (/* @__PURE__ */ new Date()).getTime() - MAX_AGE * 24 * 3600 * 1e3;
               return [2, this._filterAsync(minidumps, function(path2) {
                 return __awaiter$1(_this, void 0, void 0, function() {
@@ -33439,7 +33439,7 @@ var MinidumpUploader = (
                         return [3, 5];
                       case 4:
                         _a2.sent();
-                        logger$j.warn("Could not delete", path2);
+                        logger$k.warn("Could not delete", path2);
                         return [3, 5];
                       case 5:
                         this._knownPaths.splice(this._knownPaths.indexOf(path2), 1);
@@ -33536,7 +33536,7 @@ var MinidumpUploader = (
               return [4, unlinkAsync(metadataPath)];
             case 2:
               _a.sent();
-              logger$j.log("Deleted Crashpad metadata file", metadataPath);
+              logger$k.log("Deleted Crashpad metadata file", metadataPath);
               return [3, 4];
             case 3:
               e_3 = _a.sent();
@@ -33596,7 +33596,7 @@ var MinidumpUploader = (
                         return [3, 4];
                       case 3:
                         _a2.sent();
-                        logger$j.warn("Could not delete", path2);
+                        logger$k.warn("Could not delete", path2);
                         return [3, 4];
                       case 4:
                         return [
@@ -33670,7 +33670,7 @@ var MinidumpUploader = (
                         return [3, 3];
                       case 2:
                         _a2.sent();
-                        logger$j.warn("Could not delete", req.path);
+                        logger$k.warn("Could not delete", req.path);
                         return [3, 3];
                       case 3:
                         return [
@@ -33733,7 +33733,7 @@ var MinidumpUploader = (
               bodyBuffer = Buffer.concat([bodyBuffer, Buffer.from(minidumpHeader + "\n"), minidumpContent, Buffer.from("\n")]);
               return [3, 5];
             case 4:
-              logger$j.warn("Will not add minidump to request since they are rate limited.");
+              logger$k.warn("Will not add minidump to request since they are rate limited.");
               _a.label = 5;
             case 5:
               return [2, {
@@ -34102,7 +34102,7 @@ var MainBackend = (
               return [3, 8];
             case 7:
               _a.sent();
-              logger$j.error("Error while sending native crash.");
+              logger$k.error("Error while sending native crash.");
               return [3, 8];
             case 8:
               return [
@@ -34153,7 +34153,7 @@ var MainClient = (
         }
         _this._processing -= 1;
       }, function(reason) {
-        logger$j.error(reason);
+        logger$k.error(reason);
         _this._processing -= 1;
       });
       return eventId;
@@ -36542,7 +36542,7 @@ class LogManager {
 }
 const logManager = new LogManager();
 const isDesktopNotificationSupported = electron.Notification.isSupported();
-const logger$i = logManager.getLogger("Notification");
+const logger$j = logManager.getLogger("Notification");
 function showNotification({
   body,
   title: title2 = "Tockler",
@@ -36550,7 +36550,7 @@ function showNotification({
   silent = false
 }) {
   if (isDesktopNotificationSupported) {
-    logger$i.debug("Showing notification:", body, title2);
+    logger$j.debug("Showing notification:", body, title2);
     const notification = new electron.Notification({
       title: title2,
       body,
@@ -36562,10 +36562,10 @@ function showNotification({
     }
     notification.show();
   } else {
-    logger$i.error("Notifications not supported");
+    logger$j.error("Notifications not supported");
   }
 }
-const logger$h = logManager.getLogger("TrackItemService");
+const logger$i = logManager.getLogger("TrackItemService");
 class TaskAnalyser {
   constructor() {
     __publicField(this, "newItem", null);
@@ -36576,15 +36576,15 @@ class TaskAnalyser {
   async initSettings() {
     try {
       this.isEnabled = await dbClient.getAnalyserEnabled();
-      logger$h.debug(`Task Analyser enabled: ${this.isEnabled}`);
+      logger$i.debug(`Task Analyser enabled: ${this.isEnabled}`);
     } catch (e) {
-      logger$h.error("Error initializing task analyser settings:", e);
+      logger$i.error("Error initializing task analyser settings:", e);
       this.isEnabled = false;
     }
   }
   setupEventListeners() {
     appEmitter.on("active-window-changed", (activeWindow) => {
-      logger$h.debug("Active window changed event received, analyser enabled:", this.isEnabled);
+      logger$i.debug("Active window changed event received, analyser enabled:", this.isEnabled);
       if (this.isEnabled && activeWindow) {
         const item = {
           app: activeWindow.app,
@@ -36609,10 +36609,10 @@ class TaskAnalyser {
   }
   onNotificationClick() {
     if (taskAnalyser.newItem == null) {
-      logger$h.debug("Already clicked. Prevent from creating double item.");
+      logger$i.debug("Already clicked. Prevent from creating double item.");
       return;
     }
-    logger$h.debug("Clicked. Creating new task", taskAnalyser.newItem);
+    logger$i.debug("Clicked. Creating new task", taskAnalyser.newItem);
     appEmitter.emit("start-new-log-item2", taskAnalyser.newItem);
     showNotification({
       title: "New task created!",
@@ -36624,11 +36624,11 @@ class TaskAnalyser {
   }
   async analyseAndNotify(item) {
     if (!this.isEnabled) {
-      logger$h.debug("Task analyser is disabled. Skipping analysis.");
+      logger$i.debug("Task analyser is disabled. Skipping analysis.");
       return;
     }
     try {
-      logger$h.debug("Analysing item:", item);
+      logger$i.debug("Analysing item:", item);
       let analyserItems = await dbClient.fetchAnalyserSettings();
       for (let patObj of analyserItems) {
         if (!patObj.findRe || !patObj.enabled) {
@@ -36660,14 +36660,14 @@ class TaskAnalyser {
         }
       }
     } catch (e) {
-      logger$h.error("analyseAndNotify:", e);
+      logger$i.error("analyseAndNotify:", e);
     }
   }
   // Method to toggle the analyser on/off
   async setEnabled(enabled) {
     this.isEnabled = enabled;
     await dbClient.setAnalyserEnabled(enabled);
-    logger$h.debug(`Task Analyser enabled set to: ${enabled}`);
+    logger$i.debug(`Task Analyser enabled set to: ${enabled}`);
   }
 }
 const taskAnalyser = new TaskAnalyser();
@@ -55716,14 +55716,14 @@ var State = /* @__PURE__ */ ((State2) => {
   State2["Idle"] = "IDLE";
   return State2;
 })(State || {});
-const logger$g = logManager.getLogger("watchAndPropagateState");
+const logger$h = logManager.getLogger("watchAndPropagateState");
 let currentState$1 = State.Online;
 function setCurrentState(state) {
   if (currentState$1 === state) {
     return;
   }
   if (currentState$1 === State.Offline && state === State.Idle) {
-    logger$g.error("Cannot go from OFFLINE to IDLE");
+    logger$h.error("Cannot go from OFFLINE to IDLE");
     return;
   }
   currentState$1 = state;
@@ -55734,18 +55734,18 @@ function getCurrentState() {
 }
 function watchAndPropagateState() {
   appEmitter.on("system-is-idling", () => {
-    logger$g.debug("System is idling");
+    logger$h.debug("System is idling");
     setCurrentState(State.Idle);
   });
   appEmitter.on("system-is-engaged", () => {
     setCurrentState(State.Online);
   });
   appEmitter.on("system-is-sleeping", () => {
-    logger$g.debug("System is sleeping");
+    logger$h.debug("System is sleeping");
     setCurrentState(State.Offline);
   });
   appEmitter.on("system-is-resuming", () => {
-    logger$g.debug("System is resuming");
+    logger$h.debug("System is resuming");
     setCurrentState(State.Online);
   });
 }
@@ -55755,7 +55755,7 @@ function watchAndPropagateStateCleanup() {
   appEmitter.removeAllListeners("system-is-sleeping");
   appEmitter.removeAllListeners("system-is-resuming");
 }
-const logger$f = logManager.getLogger("AppUpdater");
+const logger$g = logManager.getLogger("AppUpdater");
 const ONE_MINUTE_MS = 60 * 1e3;
 const ONE_HOUR_MS = 60 * ONE_MINUTE_MS;
 const CHECK_INTERVAL_MS$1 = ONE_HOUR_MS * 8;
@@ -55770,10 +55770,10 @@ function isAutoUpdatableBuild() {
   }
   if (platform === "linux") {
     if (process.env.APPIMAGE) {
-      logger$f.debug("Running as AppImage, auto-updatable.");
+      logger$g.debug("Running as AppImage, auto-updatable.");
       return true;
     }
-    logger$f.debug("Not running as AppImage, not auto-updatable.");
+    logger$g.debug("Not running as AppImage, not auto-updatable.");
     return false;
   }
   if (platform === "win32") {
@@ -55784,7 +55784,7 @@ function isAutoUpdatableBuild() {
 const _AppUpdater = class _AppUpdater {
   static init() {
     mainExports.autoUpdater.autoDownload = false;
-    mainExports.autoUpdater.logger = logger$f;
+    mainExports.autoUpdater.logger = logger$g;
     mainExports.autoUpdater.allowDowngrade = false;
     mainExports.autoUpdater.allowPrerelease = false;
     mainExports.autoUpdater.forceDevUpdateConfig = false;
@@ -55792,10 +55792,10 @@ const _AppUpdater = class _AppUpdater {
       "Cache-Control": "no-cache"
     };
     mainExports.autoUpdater.on("checking-for-update", () => {
-      logger$f.debug("Checking for update...");
+      logger$g.debug("Checking for update...");
     });
     mainExports.autoUpdater.on("update-available", (info) => {
-      logger$f.debug(`Update ${info.version} available, starting download...`);
+      logger$g.debug(`Update ${info.version} available, starting download...`);
       showNotification({
         body: `Downloading Tockler version ${info.version}`,
         title: "Update available",
@@ -55803,26 +55803,26 @@ const _AppUpdater = class _AppUpdater {
       });
       if (!updateInProgress) {
         updateInProgress = true;
-        logger$f.debug("Downloading update - initiating download process...");
+        logger$g.debug("Downloading update - initiating download process...");
         mainExports.autoUpdater.downloadUpdate().then(() => {
-          logger$f.debug("Download initiated successfully");
+          logger$g.debug("Download initiated successfully");
         }).catch((err) => {
           updateInProgress = false;
-          logger$f.error("Error downloading update:", err);
+          logger$g.error("Error downloading update:", err);
         });
       } else {
-        logger$f.debug("Update already in progress, not starting new download.");
+        logger$g.debug("Update already in progress, not starting new download.");
       }
     });
     mainExports.autoUpdater.on("update-not-available", () => {
-      logger$f.debug("No update available");
+      logger$g.debug("No update available");
       updateInProgress = false;
     });
     mainExports.autoUpdater.on("download-progress", (progressInfo) => {
-      logger$f.debug(`Downloaded: ${Math.round(progressInfo.percent)}% `);
+      logger$g.debug(`Downloaded: ${Math.round(progressInfo.percent)}% `);
     });
     mainExports.autoUpdater.on("update-downloaded", async (info) => {
-      logger$f.debug(`Downloaded Tockler version ${info.version}`);
+      logger$g.debug(`Downloaded Tockler version ${info.version}`);
       updateInProgress = false;
       WindowManager.setTrayIconToUpdate();
       showNotification({
@@ -55833,7 +55833,7 @@ const _AppUpdater = class _AppUpdater {
     });
     mainExports.autoUpdater.on("error", (e) => {
       updateInProgress = false;
-      logger$f.error("AutoUpdater error:", e);
+      logger$g.error("AutoUpdater error:", e);
       showNotification({
         title: "Tockler update error",
         body: e ? e.stack || "" : "unknown"
@@ -55846,21 +55846,21 @@ const _AppUpdater = class _AppUpdater {
     isAutoUpdateEnabled = typeof isAutoUpdateEnabled !== "undefined" ? isAutoUpdateEnabled : true;
     const canAutoUpdate = isAutoUpdatableBuild();
     if (!canAutoUpdate) {
-      logger$f.debug("Auto update not available for this build type.");
+      logger$g.debug("Auto update not available for this build type.");
       return;
     }
     if (isAutoUpdateEnabled && getCurrentState() === State.Online) {
-      logger$f.debug("Checking for updates.");
+      logger$g.debug("Checking for updates.");
       mainExports.autoUpdater.checkForUpdates().catch((err) => {
-        logger$f.error("Error checking for updates:", err);
+        logger$g.error("Error checking for updates:", err);
       });
     } else {
-      logger$f.debug("Auto update disabled.");
+      logger$g.debug("Auto update disabled.");
     }
   }
   static async checkForUpdatesManual() {
     var _a;
-    logger$f.debug("Checking for updates manually");
+    logger$g.debug("Checking for updates manually");
     const canAutoUpdate = isAutoUpdatableBuild();
     if (!canAutoUpdate) {
       showNotification({
@@ -55883,7 +55883,7 @@ const _AppUpdater = class _AppUpdater {
       const result = await mainExports.autoUpdater.checkForUpdates();
       if ((_a = result == null ? void 0 : result.updateInfo) == null ? void 0 : _a.version) {
         const latestVersion = result.updateInfo.version;
-        logger$f.debug(`Update result ${latestVersion}`);
+        logger$g.debug(`Update result ${latestVersion}`);
         const currentVersionString = electron.app.getVersion();
         if (currentVersionString === latestVersion) {
           showNotification({
@@ -55893,7 +55893,7 @@ const _AppUpdater = class _AppUpdater {
         }
       }
     } catch (e) {
-      logger$f.error("Error checking updates", e);
+      logger$g.error("Error checking updates", e);
       showNotification({
         title: "Tockler error",
         body: e ? e.stack || "" : "unknown"
@@ -56044,7 +56044,7 @@ class MenuBuilder {
     }
   }
 }
-const logger$e = logManager.getLogger("WindowManager");
+const logger$f = logManager.getLogger("WindowManager");
 const preloadScript = require$$0__namespace.join(electron.app.getAppPath(), "dist-electron", "preloadStuff.js");
 const devUrl = `http://127.0.0.1:3000`;
 const prodUrl = `file://${require$$0__namespace.join(__dirname, "index.html")}`;
@@ -56053,7 +56053,7 @@ const getNativeTrayIcon = (path2) => {
   try {
     return electron.nativeImage.createFromPath(path2);
   } catch (err) {
-    logger$e.error("Error creating tray toggle icon with color:", err);
+    logger$f.error("Error creating tray toggle icon with color:", err);
   }
   return void 0;
 };
@@ -56061,7 +56061,7 @@ const sendToTrayWindow = (key, message = "") => {
   if (WindowManager.menubar && WindowManager.menubar.window) {
     WindowManager.menubar.window.webContents.send(key, message);
   } else {
-    logger$e.error("No menubar window or no webcontents.");
+    logger$f.error("No menubar window or no webcontents.");
   }
 };
 const sendToNotificationWindow = async (key, durationMs) => {
@@ -56071,7 +56071,7 @@ const sendToNotificationWindow = async (key, durationMs) => {
         if (WindowManager.tray) {
           positioner.position(WindowManager.notificationWindow, WindowManager.tray.getBounds());
         } else {
-          logger$e.error("Tray not defined yet, not sending notifyUser");
+          logger$f.error("Tray not defined yet, not sending notifyUser");
         }
       }
       WindowManager.notificationWindow.showInactive();
@@ -56081,23 +56081,23 @@ const sendToNotificationWindow = async (key, durationMs) => {
         if (WindowManager.notificationWindow) {
           WindowManager.notificationWindow.hide();
         } else {
-          logger$e.error("NotificationWindow not created");
+          logger$f.error("NotificationWindow not created");
         }
       }, notificationDuration * 1e3);
-      logger$e.debug("Send to notification window:", key, durationMs);
+      logger$f.debug("Send to notification window:", key, durationMs);
       WindowManager.notificationWindow.webContents.send(key, { durationMs });
     } else {
-      logger$e.error("No notification window or no webcontents.");
+      logger$f.error("No notification window or no webcontents.");
     }
   } catch (error2) {
-    logger$e.error("Error sending notification:", error2);
+    logger$f.error("Error sending notification:", error2);
   }
 };
 const sendToMainWindow = (key, message = "") => {
   if (WindowManager.mainWindow && WindowManager.mainWindow.webContents) {
     WindowManager.mainWindow.webContents.send(key, message);
   } else {
-    logger$e.error("No main window or no webcontents.");
+    logger$f.error("No main window or no webcontents.");
   }
 };
 const commonWebPreferences = {
@@ -56116,15 +56116,15 @@ const _WindowManager = class _WindowManager {
     electron.Menu.setApplicationMenu(null);
   }
   static createMainWindow() {
-    logger$e.debug("Creating main window.");
-    logger$e.debug("Preload script path:", preloadScript);
+    logger$f.debug("Creating main window.");
+    logger$f.debug("Preload script path:", preloadScript);
     const hasWindowSize = config.persisted.has("windowsize");
     const windowSize = config.persisted.get("windowsize") || { width: 1080, height: 720 };
     const wasMaximizedOrFullScreen = config.persisted.get("wasMaximizedOrFullScreen") || false;
-    logger$e.debug("Restoring window size:", windowSize);
-    logger$e.debug("Previous window was maximized or full screen:", wasMaximizedOrFullScreen);
+    logger$f.debug("Restoring window size:", windowSize);
+    logger$f.debug("Previous window was maximized or full screen:", wasMaximizedOrFullScreen);
     if (windowSize.width < 100 || windowSize.height < 100) {
-      logger$e.debug("Window size is too small, using default size");
+      logger$f.debug("Window size is too small, using default size");
       windowSize.width = 1080;
       windowSize.height = 720;
     }
@@ -56141,7 +56141,7 @@ const _WindowManager = class _WindowManager {
           }
         }
       } catch (e) {
-        logger$e.error("Error checking display bounds", e);
+        logger$f.error("Error checking display bounds", e);
         isPositionValid = false;
       }
     }
@@ -56157,19 +56157,19 @@ const _WindowManager = class _WindowManager {
       icon: config.iconWindow
     });
     this.mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
-      logger$e.error("Failed to load:", errorCode, errorDescription);
+      logger$f.error("Failed to load:", errorCode, errorDescription);
     });
     this.mainWindow.webContents.on("console-message", (event) => {
-      logger$e.debug(`Console: ${event.message} (${event.sourceId}:${event.lineNumber})`);
+      logger$f.debug(`Console: ${event.message} (${event.sourceId}:${event.lineNumber})`);
     });
     this.mainWindow.loadURL(pageUrl).catch((err) => {
-      logger$e.error("Could not load url in main window:", err);
+      logger$f.error("Could not load url in main window:", err);
     });
     this.mainWindow.on("minimize", () => {
-      logger$e.debug("MainWindow minimize");
+      logger$f.debug("MainWindow minimize");
     });
     this.mainWindow.on("restore", () => {
-      logger$e.debug("MainWindow restore");
+      logger$f.debug("MainWindow restore");
     });
     this.mainWindow.webContents.clearHistory();
     return { hasWindowSize, wasMaximizedOrFullScreen };
@@ -56178,32 +56178,32 @@ const _WindowManager = class _WindowManager {
     const { hasWindowSize, wasMaximizedOrFullScreen } = _WindowManager.createMainWindow();
     const shouldMaximize = !hasWindowSize || wasMaximizedOrFullScreen;
     if (electron.app.dock && showOnLoad) {
-      logger$e.debug("Show dock window.");
+      logger$f.debug("Show dock window.");
       electron.app.dock.show();
     }
     if (!this.mainWindow) {
-      logger$e.error("MainWindow not created");
+      logger$f.error("MainWindow not created");
       return;
     }
     this.mainWindow.on("close", () => {
-      logger$e.debug("MainWindow close");
+      logger$f.debug("MainWindow close");
       if (this.mainWindow) {
-        logger$e.debug("Window closing, saving final size");
+        logger$f.debug("Window closing, saving final size");
         _WindowManager.storeWindowSize();
-        logger$e.debug("Closing window");
+        logger$f.debug("Closing window");
         this.mainWindow = null;
       }
       if (electron.app.dock) {
-        logger$e.debug("Hide dock window.");
+        logger$f.debug("Hide dock window.");
         electron.app.dock.hide();
       }
     });
     this.mainWindow.on("closed", () => {
-      logger$e.debug("MainWindow closed");
+      logger$f.debug("MainWindow closed");
       this.mainWindow = null;
     });
     this.mainWindow.on("focus", () => {
-      logger$e.debug("MainWindow focus");
+      logger$f.debug("MainWindow focus");
       let sendEventName = "main-window-focus";
       if (this.mainWindow && this.mainWindow.isMaximized()) {
         sendEventName = "main-window-focus-maximized";
@@ -56213,7 +56213,7 @@ const _WindowManager = class _WindowManager {
       }
     });
     this.mainWindow.webContents.on("did-finish-load", () => {
-      logger$e.debug("did-finish-load");
+      logger$f.debug("did-finish-load");
       if (showOnLoad) {
         if (this.mainWindow) {
           this.mainWindow.show();
@@ -56221,9 +56221,9 @@ const _WindowManager = class _WindowManager {
             setTimeout(() => {
               if (this.mainWindow) {
                 if (!hasWindowSize) {
-                  logger$e.debug("Opening window maximized (no saved size)");
+                  logger$f.debug("Opening window maximized (no saved size)");
                 } else {
-                  logger$e.debug("Restoring maximized state");
+                  logger$f.debug("Restoring maximized state");
                 }
                 this.mainWindow.maximize();
               }
@@ -56231,29 +56231,29 @@ const _WindowManager = class _WindowManager {
           }
           this.mainWindow.focus();
         } else {
-          logger$e.error("MainWindow not created");
+          logger$f.error("MainWindow not created");
         }
       }
     });
     this.mainWindow.on("maximize", () => {
-      logger$e.debug("Window maximized");
+      logger$f.debug("Window maximized");
       this.storeWindowSize();
     });
     this.mainWindow.on("unmaximize", () => {
-      logger$e.debug("Window unmaximized");
+      logger$f.debug("Window unmaximized");
       this.storeWindowSize();
     });
     this.mainWindow.on("enter-full-screen", () => {
-      logger$e.debug("Window entered full screen");
+      logger$f.debug("Window entered full screen");
       this.storeWindowSize();
     });
     this.mainWindow.on("leave-full-screen", () => {
-      logger$e.debug("Window left full screen");
+      logger$f.debug("Window left full screen");
       const wasMaximized = config.persisted.get("wasMaximizedOrFullScreen");
       if (wasMaximized && this.mainWindow) {
         setTimeout(() => {
           if (this.mainWindow) {
-            logger$e.debug("Restoring maximized state after leaving full screen");
+            logger$f.debug("Restoring maximized state after leaving full screen");
             this.mainWindow.maximize();
           }
         }, 200);
@@ -56263,10 +56263,10 @@ const _WindowManager = class _WindowManager {
     this.mainWindow.on("resize", lodashExports.throttle(_WindowManager.storeWindowSize, 1e3));
     this.mainWindow.on("move", lodashExports.throttle(_WindowManager.storeWindowSize, 1e3));
     this.mainWindow.on("hide", () => {
-      logger$e.debug("MainWindow hide");
+      logger$f.debug("MainWindow hide");
     });
     this.mainWindow.on("show", () => {
-      logger$e.debug("MainWindow show");
+      logger$f.debug("MainWindow show");
     });
     _WindowManager.initMenus();
   }
@@ -56276,36 +56276,36 @@ const _WindowManager = class _WindowManager {
       return;
     }
     if (!_WindowManager.mainWindow) {
-      logger$e.error("MainWindow not created");
+      logger$f.error("MainWindow not created");
       return;
     }
     if (_WindowManager.mainWindow.isMinimized()) {
       _WindowManager.mainWindow.restore();
     }
     _WindowManager.mainWindow.show();
-    logger$e.debug("Focusing main window");
+    logger$f.debug("Focusing main window");
     _WindowManager.mainWindow.focus();
   }
   static initMainWindowEvents() {
-    logger$e.debug("Init main window events.");
+    logger$f.debug("Init main window events.");
     electron.ipcMain.on("toggle-main-window", () => {
       if (!this.mainWindow) {
-        logger$e.debug("MainWindow closed, opening");
+        logger$f.debug("MainWindow closed, opening");
         _WindowManager.setMainWindow();
       }
       if (!this.mainWindow) {
-        logger$e.error("MainWindow not created");
+        logger$f.error("MainWindow not created");
         return;
       }
-      logger$e.debug("Toggling main window");
+      logger$f.debug("Toggling main window");
       if (this.mainWindow.isVisible() && !this.mainWindow.isMinimized()) {
-        logger$e.debug("Hide main window");
+        logger$f.debug("Hide main window");
         this.mainWindow.hide();
       } else if (this.mainWindow.isMinimized()) {
-        logger$e.debug("Restore main window");
+        logger$f.debug("Restore main window");
         this.mainWindow.restore();
       } else {
-        logger$e.debug("Show main window");
+        logger$f.debug("Show main window");
         this.mainWindow.show();
       }
     });
@@ -56313,19 +56313,19 @@ const _WindowManager = class _WindowManager {
   static storeWindowSize() {
     try {
       if (!this.mainWindow) {
-        logger$e.error("MainWindow not created");
+        logger$f.error("MainWindow not created");
         return;
       }
       const bounds = this.mainWindow.getBounds();
-      logger$e.debug("Saving window bounds:", bounds);
+      logger$f.debug("Saving window bounds:", bounds);
       config.persisted.set("windowsize", bounds);
       const isMaximized = this.mainWindow.isMaximized();
-      logger$e.debug(`Window state - maximized: ${isMaximized}`);
+      logger$f.debug(`Window state - maximized: ${isMaximized}`);
       config.persisted.set("wasMaximizedOrFullScreen", isMaximized);
       const savedBounds = config.persisted.get("windowsize");
-      logger$e.debug("Verified saved bounds:", savedBounds);
+      logger$f.debug("Verified saved bounds:", savedBounds);
     } catch (e) {
-      logger$e.error("Error saving window bounds", e);
+      logger$f.error("Error saving window bounds", e);
     }
   }
   static async positionTrayWindow() {
@@ -56356,7 +56356,7 @@ const _WindowManager = class _WindowManager {
     }
   }
   static setTrayWindow() {
-    logger$e.debug("Creating tray window.");
+    logger$f.debug("Creating tray window.");
     this.tray = new electron.Tray(config.iconTray);
     this.menubar = libExports.menubar({
       index: pageUrl + "#/trayApp",
@@ -56372,23 +56372,23 @@ const _WindowManager = class _WindowManager {
     });
     this.menubar.on("after-create-window", () => {
       var _a, _b;
-      logger$e.debug("Hiding dock, as a fix.");
+      logger$f.debug("Hiding dock, as a fix.");
       (_b = (_a = this.menubar.app) == null ? void 0 : _a.dock) == null ? void 0 : _b.hide();
     });
     this.menubar.on("after-show", () => {
       _WindowManager.positionTrayWindow();
       if (config.isDev) {
-        logger$e.debug("Open menubar dev tools");
+        logger$f.debug("Open menubar dev tools");
         this.menubar.window.openDevTools({ mode: "bottom" });
       }
     });
     this.menubar.on("ready", () => {
-      logger$e.debug("Menubar is ready");
+      logger$f.debug("Menubar is ready");
       if (this.menubar.window) {
         this.menubar.window.webContents.on(
           "did-fail-load",
           (_event, errorCode, errorDescription) => {
-            logger$e.error("Menubar failed to load:", errorCode, errorDescription);
+            logger$f.error("Menubar failed to load:", errorCode, errorDescription);
           }
         );
       }
@@ -56400,7 +56400,7 @@ const _WindowManager = class _WindowManager {
     });
   }
   static setNotificationWindow() {
-    logger$e.debug("Creating notification window.");
+    logger$f.debug("Creating notification window.");
     this.notificationWindow = new electron.BrowserWindow({
       focusable: false,
       alwaysOnTop: true,
@@ -56415,10 +56415,10 @@ const _WindowManager = class _WindowManager {
       height: 30
     });
     this.notificationWindow.loadURL(pageUrl + "#/notificationApp").catch((err) => {
-      logger$e.error("Could not load url in notification window:", err);
+      logger$f.error("Could not load url in notification window:", err);
     });
     this.notificationWindow.webContents.on("console-message", (event) => {
-      logger$e.debug(`Notification console: ${event.message} (${event.sourceId}:${event.lineNumber})`);
+      logger$f.debug(`Notification console: ${event.message} (${event.sourceId}:${event.lineNumber})`);
     });
     this.notificationWindow.setResizable(false);
     this.notificationWindow.on("closed", () => {
@@ -56426,14 +56426,14 @@ const _WindowManager = class _WindowManager {
     });
   }
   static setTrayIconToUpdate() {
-    logger$e.debug("Setting tray icon to download update icon");
+    logger$f.debug("Setting tray icon to download update icon");
     try {
       const trayIconWithColor = getNativeTrayIcon(config.iconTrayUpdate);
       if (this.tray && trayIconWithColor) {
         this.tray.setImage(trayIconWithColor);
       }
     } catch (e) {
-      logger$e.error("Error setting tray icon to update:", e);
+      logger$f.error("Error setting tray icon to update:", e);
     }
     _WindowManager.menubar.tray.on("click", async () => {
       const { response } = await electron.dialog.showMessageBox(_WindowManager.menubar.window, {
@@ -56455,7 +56455,7 @@ const _WindowManager = class _WindowManager {
         this.tray.setImage(trayIconWithColor);
       }
     } catch (e) {
-      logger$e.error("Error toggling tray icon:", e);
+      logger$f.error("Error toggling tray icon:", e);
     }
   }
 };
@@ -56464,7 +56464,7 @@ __publicField(_WindowManager, "menubar");
 __publicField(_WindowManager, "notificationWindow", null);
 __publicField(_WindowManager, "tray", null);
 let WindowManager = _WindowManager;
-const logger$d = logManager.getLogger("checkActiveWindow");
+const logger$e = logManager.getLogger("checkActiveWindow");
 const ACTIVE_WINDOW_CHECK_INTERVAL = 3;
 const errorWindowItem = {
   platform: "macos",
@@ -56506,12 +56506,12 @@ async function getActiveWindow() {
   try {
     let activeWindow = await activeWin();
     if (!activeWindow) {
-      logger$d.debug("No active window found");
+      logger$e.debug("No active window found");
       activeWindow = errorWindowItem;
     }
     return activeWindow;
   } catch (error2) {
-    logger$d.error("Error checking active window", error2);
+    logger$e.error("Error checking active window", error2);
     return errorWindowItem;
   }
 }
@@ -56525,7 +56525,7 @@ function areEqualActiveWindow(item1, item2) {
   }
   return false;
 }
-const logger$c = logManager.getLogger("watchForActiveWindow");
+const logger$d = logManager.getLogger("watchForActiveWindow");
 let interval$1 = null;
 let lastActiveWindow = null;
 async function checkActiveWindow() {
@@ -56537,7 +56537,7 @@ async function checkActiveWindow() {
   lastActiveWindow = activeWindow;
 }
 async function watchForActiveWindow(backgroundJobInterval) {
-  logger$c.debug("Add checkActiveWindow interval");
+  logger$d.debug("Add checkActiveWindow interval");
   const timeInSeconds = backgroundJobInterval || ACTIVE_WINDOW_CHECK_INTERVAL;
   const timeInMs = timeInSeconds * 1e3;
   checkActiveWindow();
@@ -56545,21 +56545,21 @@ async function watchForActiveWindow(backgroundJobInterval) {
 }
 function watchForActiveWindowRemove() {
   if (interval$1) {
-    logger$c.debug("Remove checkActiveWindow interval");
+    logger$d.debug("Remove checkActiveWindow interval");
     clearInterval(interval$1);
     interval$1 = null;
   }
   lastActiveWindow = null;
 }
 function startActiveWindowWatcher(backgroundJobInterval) {
-  logger$c.warn("Start active window watcher");
+  logger$d.warn("Start active window watcher");
   watchForActiveWindow(backgroundJobInterval);
   return watchForActiveWindowRemove;
 }
-const logger$b = logManager.getLogger("watchAndSetAppTrackItem");
+const logger$c = logManager.getLogger("watchAndSetAppTrackItem");
 let currentAppItem = null;
 async function setAppTrackItem(activeWindow) {
-  logger$b.debug("App changed", activeWindow);
+  logger$c.debug("App changed", activeWindow);
   const now2 = Date.now();
   if (currentAppItem) {
     currentAppItem.endDate = now2;
@@ -56582,37 +56582,37 @@ async function getOngoingAppTrackItem() {
   return { ...currentAppItem, endDate: Date.now(), id: 0, color };
 }
 const saveOngoingTrackItem$2 = async () => {
-  logger$b.debug("Save ongoing track item");
+  logger$c.debug("Save ongoing track item");
   if (currentAppItem) {
     currentAppItem.endDate = Date.now();
     await dbClient.insertTrackItemInternal(currentAppItem);
     currentAppItem = null;
   } else {
-    logger$b.debug("No ongoing track item to save");
+    logger$c.debug("No ongoing track item to save");
   }
 };
 function addActiveWindowWatch() {
-  logger$b.info("Add active-window-listener");
+  logger$c.info("Add active-window-listener");
   appEmitter.on("active-window-changed", (activeWindow) => {
     setAppTrackItem(activeWindow);
   });
 }
 async function removeActiveWindowWatch() {
-  logger$b.info("Remove active-window-listener");
+  logger$c.info("Remove active-window-listener");
   appEmitter.removeAllListeners("active-window-changed");
   await saveOngoingTrackItem$2();
 }
 let removeActiveWindowWatcher;
 function watchAndSetAppTrackItem(backgroundJobInterval) {
-  logger$b.debug("Watch and set app track item.........");
+  logger$c.debug("Watch and set app track item.........");
   addActiveWindowWatch();
   removeActiveWindowWatcher = startActiveWindowWatcher(backgroundJobInterval);
   appEmitter.on("state-changed", async (state) => {
-    logger$b.debug("State changed: active-window-listener", state);
+    logger$c.debug("State changed: active-window-listener", state);
     if (state === State.Online) {
-      logger$b.debug("Start active window watcher");
+      logger$c.debug("Start active window watcher");
       if (removeActiveWindowWatcher) {
-        logger$b.warn("ERROR:Stopping previous active window watcher. Should not happen.");
+        logger$c.warn("ERROR:Stopping previous active window watcher. Should not happen.");
         removeActiveWindowWatcher();
       }
       removeActiveWindowWatcher = startActiveWindowWatcher(backgroundJobInterval);
@@ -56626,15 +56626,15 @@ async function watchAndSetAppTrackItemCleanup() {
   await removeActiveWindowWatch();
   removeActiveWindowWatcher == null ? void 0 : removeActiveWindowWatcher();
 }
-const logger$a = logManager.getLogger("watchAndSetLogTrackItemCleanup");
+const logger$b = logManager.getLogger("watchAndSetLogTrackItemCleanup");
 let currentLogItem = null;
 let lastState = State.Online;
 const offlineStates = [State.Idle, State.Offline];
 async function cutLogTrackItem(state) {
   const now2 = Date.now();
-  logger$a.debug(`State changed to ${state}=>${now2}`);
+  logger$b.debug(`State changed to ${state}=>${now2}`);
   if (!currentLogItem) {
-    logger$a.debug("No log item to cut");
+    logger$b.debug("No log item to cut");
     lastState = state;
     return;
   }
@@ -56650,9 +56650,9 @@ async function cutLogTrackItem(state) {
   lastState = state;
 }
 async function stopRunningLogTrackItem(endDate) {
-  logger$a.debug("stopRunningLogTrackItem");
+  logger$b.debug("stopRunningLogTrackItem");
   if (!currentLogItem) {
-    logger$a.debug("No log item to stop");
+    logger$b.debug("No log item to stop");
     return;
   }
   await dbClient.saveRunningLogItemReference(null);
@@ -56664,7 +56664,7 @@ async function stopRunningLogTrackItem(endDate) {
   currentLogItem = null;
 }
 async function createNewRunningLogTrackItem(rawItem) {
-  logger$a.debug("createNewRunningLogTrackItem", rawItem);
+  logger$b.debug("createNewRunningLogTrackItem", rawItem);
   const now2 = Date.now();
   await stopRunningLogTrackItem(now2);
   const newLogItem = {
@@ -56699,7 +56699,7 @@ async function watchAndSetLogTrackItem() {
     await stopRunningLogTrackItem(Date.now());
   });
   appEmitter.on("start-new-log-item2", async (rawItem) => {
-    logger$a.debug("start-new-log-item2 event");
+    logger$b.debug("start-new-log-item2 event");
     await createNewRunningLogTrackItem(rawItem);
   });
 }
@@ -56715,7 +56715,7 @@ async function watchAndSetLogTrackItemCleanup() {
   await saveOngoingTrackItem$1();
   currentLogItem = null;
 }
-const logger$9 = logManager.getLogger("watchAndSetStatusTrackItem");
+const logger$a = logManager.getLogger("watchAndSetStatusTrackItem");
 let currentStatusItem = null;
 function makeStatusItem(state) {
   const now2 = Date.now();
@@ -56730,7 +56730,7 @@ function makeStatusItem(state) {
 function watchAndSetStatusTrackItem() {
   currentStatusItem = makeStatusItem(State.Online);
   appEmitter.on("state-changed", async (state) => {
-    logger$9.debug("State changed", state);
+    logger$a.debug("State changed", state);
     const now2 = Date.now();
     if (currentStatusItem) {
       currentStatusItem.endDate = now2;
@@ -56757,26 +56757,26 @@ async function watchAndSetStatusTrackItemCleanup() {
   appEmitter.removeAllListeners("state-changed");
   await saveOngoingTrackItem();
 }
-const logger$8 = logManager.getLogger("Background");
+const logger$9 = logManager.getLogger("Background");
 async function getLastItemsAll({ to: to2, taskName }) {
   const isToday = hooks(to2).isSame(hooks(), "day");
   const data = [];
   if (isToday && taskName === TrackItemType.StatusTrackItem) {
-    logger$8.debug("Adding ongoing status track item.");
+    logger$9.debug("Adding ongoing status track item.");
     const ongoingStatusItem = await getOngoingStatusTrackItem();
     if (ongoingStatusItem) {
       data.push(ongoingStatusItem);
     }
   }
   if (isToday && taskName === TrackItemType.AppTrackItem) {
-    logger$8.debug("Adding ongoing app track item.");
+    logger$9.debug("Adding ongoing app track item.");
     const ongoingAppItem = await getOngoingAppTrackItem();
     if (ongoingAppItem) {
       data.push(ongoingAppItem);
     }
   }
   if (isToday && taskName === TrackItemType.LogTrackItem) {
-    logger$8.debug("Adding ongoing log track item.");
+    logger$9.debug("Adding ongoing log track item.");
     const ongoingLogItem = await getOngoingLogTrackItem();
     if (ongoingLogItem) {
       data.push(ongoingLogItem);
@@ -63248,10 +63248,10 @@ let notificationInterval = null;
 let isMonitoringEnabled = false;
 let currentState = State.Online;
 let lastNotificationTime = 0;
-const logger$7 = logManager.getLogger("watchForBreakNotification");
+const logger$8 = logManager.getLogger("watchForBreakNotification");
 async function startInterval() {
   if (notificationInterval) {
-    logger$7.debug("Clearing existing interval");
+    logger$8.debug("Clearing existing interval");
     clearInterval(notificationInterval);
   }
   const settings = await dbClient.fetchWorkSettings();
@@ -63259,7 +63259,7 @@ async function startInterval() {
     return;
   }
   isMonitoringEnabled = true;
-  logger$7.debug("Starting session monitoring interval");
+  logger$8.debug("Starting session monitoring interval");
   notificationInterval = setInterval(async () => {
     try {
       const currentSettings = await dbClient.fetchWorkSettings();
@@ -63269,24 +63269,24 @@ async function startInterval() {
       }
       const currentSession = await getCurrentSessionDuration(currentSettings.minBreakTime);
       const readableDuration = Duration.fromObject({ milliseconds: currentSession }).toFormat("hh:mm:ss");
-      logger$7.debug("currentSession2:", readableDuration, currentSession);
+      logger$8.debug("currentSession2:", readableDuration, currentSession);
       const MAX_TIMER = currentSettings.sessionLength * MINUTE;
       const now2 = Date.now();
       const timeSinceLastNotification = now2 - lastNotificationTime;
       const reNotifyIntervalMs = currentSettings.reNotifyInterval * MINUTE;
-      logger$7.debug("timeSinceLastNotification:", timeSinceLastNotification, reNotifyIntervalMs);
+      logger$8.debug("timeSinceLastNotification:", timeSinceLastNotification, reNotifyIntervalMs);
       if (currentSession > MAX_TIMER && (timeSinceLastNotification >= reNotifyIntervalMs || lastNotificationTime === 0)) {
-        logger$7.debug("Sending notification");
+        logger$8.debug("Sending notification");
         sendToNotificationWindow("notifyUser", currentSession);
         lastNotificationTime = now2;
       }
     } catch (error2) {
-      logger$7.error("Error in session monitoring interval:", error2);
+      logger$8.error("Error in session monitoring interval:", error2);
     }
   }, CHECK_INTERVAL_MS);
 }
 function watchForBreakNotificationCleanup() {
-  logger$7.debug("Stopping session monitoring");
+  logger$8.debug("Stopping session monitoring");
   isMonitoringEnabled = false;
   if (notificationInterval) {
     clearInterval(notificationInterval);
@@ -63295,9 +63295,9 @@ function watchForBreakNotificationCleanup() {
   lastNotificationTime = 0;
 }
 async function watchForBreakNotification() {
-  logger$7.debug("Initializing session monitoring");
+  logger$8.debug("Initializing session monitoring");
   appEmitter.on("state-changed", async (state) => {
-    logger$7.debug("State changed for break notification:", state);
+    logger$8.debug("State changed for break notification:", state);
     currentState = state;
     if (state === State.Online) {
       await startInterval();
@@ -63314,7 +63314,7 @@ async function watchForBreakNotification() {
   });
   await startInterval();
 }
-const logger$6 = logManager.getLogger("IdleStateWatcher.utils");
+const logger$7 = logManager.getLogger("IdleStateWatcher.utils");
 const IDLE_STATE_CHECK_INTERVAL = 5e3;
 const checkIdleState = async (idleAfterSeconds) => {
   try {
@@ -63326,19 +63326,19 @@ const checkIdleState = async (idleAfterSeconds) => {
       appEmitter.emit("system-is-engaged");
     }
   } catch (error2) {
-    logger$6.error(`Error checking idle state: ${error2.toString()}`, error2);
+    logger$7.error(`Error checking idle state: ${error2.toString()}`, error2);
   }
 };
-const logger$5 = logManager.getLogger("IdleStateWatcher");
+const logger$6 = logManager.getLogger("IdleStateWatcher");
 let interval = null;
 function addIdleStateWatch(idleAfterSeconds) {
   removeIdleStateWatch();
-  logger$5.debug("Add idle state check interval");
+  logger$6.debug("Add idle state check interval");
   interval = setInterval(() => checkIdleState(idleAfterSeconds), IDLE_STATE_CHECK_INTERVAL);
 }
 function removeIdleStateWatch() {
   if (interval) {
-    logger$5.debug("Remove idle state check interval");
+    logger$6.debug("Remove idle state check interval");
     clearInterval(interval);
     interval = null;
   }
@@ -63349,39 +63349,108 @@ function startIdleStateWatcher(idleAfterSeconds) {
 }
 let removeIdleStateWatcher;
 function watchForIdleState(idleAfterSeconds) {
-  logger$5.debug("Watching for idle state");
+  logger$6.debug("Watching for idle state");
   removeIdleStateWatcher = startIdleStateWatcher(idleAfterSeconds);
   appEmitter.on("system-is-resuming", async () => {
-    logger$5.debug("State changed: system-is-resuming");
+    logger$6.debug("State changed: system-is-resuming");
     if (removeIdleStateWatcher) {
-      logger$5.warn("ERROR:Stopping previous idle state watcher. Should not happen.");
+      logger$6.warn("ERROR:Stopping previous idle state watcher. Should not happen.");
       removeIdleStateWatcher();
     }
     removeIdleStateWatcher = startIdleStateWatcher(idleAfterSeconds);
   });
   appEmitter.on("system-is-sleeping", async () => {
-    logger$5.debug("State changed: system-is-sleeping");
+    logger$6.debug("State changed: system-is-sleeping");
     removeIdleStateWatcher == null ? void 0 : removeIdleStateWatcher();
   });
 }
 function watchForIdleStateCleanup() {
-  logger$5.debug("Removing idle state watcher");
+  logger$6.debug("Removing idle state watcher");
   removeIdleStateWatcher == null ? void 0 : removeIdleStateWatcher();
 }
-const logger$4 = logManager.getLogger("WatchForPowerState");
+const logger$5 = logManager.getLogger("WatchForPowerState");
 function watchForPowerState() {
   electron.powerMonitor.on("suspend", function() {
-    logger$4.debug("The system is going to sleep");
+    logger$5.debug("The system is going to sleep");
     appEmitter.emit("system-is-sleeping");
   });
   electron.powerMonitor.on("resume", function() {
-    logger$4.debug("The system is going to resume");
+    logger$5.debug("The system is going to resume");
     appEmitter.emit("system-is-resuming");
   });
 }
 function watchForPowerStateCleanup() {
   electron.powerMonitor.removeAllListeners("suspend");
   electron.powerMonitor.removeAllListeners("resume");
+}
+const logger$4 = logManager.getLogger("HrSyncService");
+let syncInterval = null;
+const SYNC_INTERVAL_MS = 5 * 60 * 1e3;
+function initHrSyncJob() {
+  logger$4.info("Initializing HR sync job...");
+  const backendUrl = process.env.VITE_HR_BACKEND_URL || process.env.HR_BACKEND_URL || "https://dev.nashrms.com";
+  syncInterval = setInterval(async () => {
+    try {
+      await performSync(backendUrl);
+    } catch (error2) {
+      logger$4.error("HR sync job failed: " + (error2 instanceof Error ? error2.message : String(error2)));
+    }
+  }, SYNC_INTERVAL_MS);
+  setTimeout(async () => {
+    try {
+      await performSync(backendUrl);
+    } catch (error2) {
+      logger$4.error("Initial HR sync job failed: " + (error2 instanceof Error ? error2.message : String(error2)));
+    }
+  }, 1e4);
+}
+async function performSync(backendUrl) {
+  const empId = config.persisted.get("empId");
+  const tenantId = config.persisted.get("tenantId");
+  const token2 = config.persisted.get("token");
+  if (!empId || !tenantId || !token2) {
+    logger$4.debug("HR Sync aborted: Missing authentication (empId, tenantId, or token).");
+    return;
+  }
+  const lastSyncedId = config.persisted.get("lastSyncedId") || 0;
+  const fetchLimit = 100;
+  const newItems = await dbClient.findItemsByIdGreaterThan(lastSyncedId, fetchLimit);
+  if (!newItems || newItems.length === 0) {
+    logger$4.debug("HR Sync: No new items to sync.");
+    return;
+  }
+  const currentDate = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  const payload = {
+    activitySession: newItems
+  };
+  const syncUrl = `${backendUrl}/api/activity-session/sync-session/${currentDate}/${empId}`;
+  logger$4.info(`HR Sync: Attempting to sync ${newItems.length} items to ${syncUrl}`);
+  const response = await fetch(syncUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-tenant-id": tenantId,
+      "Authorization": `Bearer ${token2}`
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    let errText = "";
+    try {
+      errText = await response.text();
+    } catch {
+    }
+    throw new Error(`Server responded with ${response.status}: ${errText}`);
+  }
+  const maxSyncedId = newItems[newItems.length - 1].id;
+  config.persisted.set("lastSyncedId", maxSyncedId);
+  logger$4.info(`HR Sync: Successfully synced up to item ID ${maxSyncedId}`);
+}
+function cleanupHrSyncJob() {
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
 }
 let logger$3 = logManager.getLogger("BackgroundJob");
 async function initBackgroundJob() {
@@ -63396,6 +63465,7 @@ async function initBackgroundJob() {
   watchAndSetAppTrackItem(backgroundJobInterval);
   watchAndSetLogTrackItem();
   watchForBreakNotification();
+  initHrSyncJob();
 }
 async function cleanupBackgroundJob() {
   logger$3.debug("Cleaning up background job");
@@ -63406,6 +63476,7 @@ async function cleanupBackgroundJob() {
   await watchAndSetAppTrackItemCleanup();
   await watchAndSetLogTrackItemCleanup();
   watchForBreakNotificationCleanup();
+  cleanupHrSyncJob();
 }
 const logger$2 = logManager.getLogger("setupMainHandler");
 const isPromise = (obj) => {
@@ -63420,15 +63491,16 @@ const setupMainHandler = (electronModule, availableActions, enableLogs = false) 
       try {
         const result = availableActions[actionName](...args);
         if (isPromise(result)) {
-          result.catch((e) => {
-            logger$2.error(e);
+          try {
+            return await result;
+          } catch (e) {
+            logger$2.error(`Async error in ${actionName}:`, e);
             return { error: e.toString() };
-          });
-          return await result;
+          }
         }
         return result;
       } catch (e) {
-        logger$2.error(e);
+        logger$2.error(`Sync error in ${actionName}:`, e);
         return { error: e.toString() };
       }
     });
