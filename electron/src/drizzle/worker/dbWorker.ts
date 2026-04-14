@@ -37,14 +37,15 @@ parentPort!.on(
 
         // Special case for initDb - it must be processed immediately to unblock the rest
         if (action === 'initDb') {
+            console.warn('...........dbWorker::initDb starting...');
             try {
                 const result = await actions[action](...(args as any));
                 isDbReady = true;
-                console.warn('...........dbWorker::initDb result', result);
+                console.warn('...........dbWorker::initDb SUCCESS. Database is ready.');
                 parentPort!.postMessage({ id, result });
                 await processQueue();
             } catch (error: any) {
-                console.warn('...........dbWorker::initDb error', error);
+                console.error('...........dbWorker::initDb FATAL ERROR:', error);
                 parentPort!.postMessage({ id, error: error.message });
             }
             return;

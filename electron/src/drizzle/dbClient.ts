@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { Worker } from 'worker_threads';
 
@@ -8,7 +9,29 @@ const workerFilePath = path.resolve(__dirname, './dbWorker.js');
 
 const outputPath = config.databaseConfig.outputPath;
 
-const migrationsPath = path.resolve(__dirname, 'drizzle', 'migrations');
+let migrationsPath = path.resolve(__dirname, 'drizzle', 'migrations');
+
+// Robust path resolution for development and production
+if (!fs.existsSync(migrationsPath)) {
+    // Try structured path if __dirname is dist-electron
+    const distPath = path.resolve(__dirname, 'drizzle', 'migrations');
+    // Try source path if running in dev
+    const srcPath = path.resolve(__dirname, '..', 'src', 'drizzle', 'migrations');
+
+    console.warn(`...........dbClient::migrationsPath default not found: ${migrationsPath}`);
+
+    if (fs.existsSync(distPath)) {
+        migrationsPath = distPath;
+        console.warn(`...........dbClient::using dist migrations path: ${migrationsPath}`);
+    } else if (fs.existsSync(srcPath)) {
+        migrationsPath = srcPath;
+        console.warn(`...........dbClient::using src migrations path: ${migrationsPath}`);
+    } else {
+        console.error('...........dbClient::migrationsPath NOT FOUND ANYWHERE');
+    }
+} else {
+    console.warn(`...........dbClient::found migrations path: ${migrationsPath}`);
+}
 
 const worker = new Worker(workerFilePath, {
     workerData: {

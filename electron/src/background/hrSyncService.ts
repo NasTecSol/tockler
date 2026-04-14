@@ -1,4 +1,7 @@
 import { dbClient } from '../drizzle/dbClient';
+import { TrackItem } from '../drizzle/schema';
+import { State } from '../enums/state';
+import { TrackItemType } from '../enums/track-item-type';
 import { config } from '../utils/config';
 import { logManager } from '../utils/log-manager';
 
@@ -88,6 +91,94 @@ async function performSync(backendUrl: string) {
     config.persisted.set('lastSyncedId', maxSyncedId);
     
     logger.info(`HR Sync: Successfully synced up to item ID ${maxSyncedId}`);
+
+    // Update the activity summary (body) for the current day
+    try {
+        await updateActivitySummary(backendUrl, currentDate, empId, tenantId, token);
+    } catch (error) {
+        logger.error('HR Sync: Failed to update activity summary: ' + (error instanceof Error ? error.message : String(error)));
+    }
+}
+
+async function updateActivitySummary(backendUrl: string, currentDate: string, empId: string, tenantId: string, token: string) {
+    const startOfDay = new Date(currentDate).getTime();
+    const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1;
+
+    const allDayItems = await dbClient.findAllDayItemsForAllTypesDb(
+        new Date(startOfDay).toISOString(),
+        new Date(endOfDay).toISOString()
+    );
+
+    if (!allDayItems || allDayItems.length === 0) {
+        return;
+    }
+
+    const body = calculateActivitySummary(allDayItems);
+    const updateUrl = `${backendUrl}/api/activity-session/update-body/${currentDate}/${empId}`;
+
+    logger.info(`HR Sync: Updating activity summary via PATCH ${updateUrl}`);
+
+    const response = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-tenant-id': tenantId,
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ body })
+    });
+
+    if (!response.ok) {
+        logger.error(`HR Sync: Failed to update activity summary. Server responded with ${response.status}`);
+    } else {
+        logger.info('HR Sync: Activity summary updated successfully.');
+    }
+}
+
+function calculateActivitySummary(items: TrackItem[]) {
+    let idleTime = 0;
+    let activeTime = 0;
+    const appDurations: Record<string, number> = {};
+    const taskDurations: Record<string, number> = {};
+
+    items.forEach(item => {
+        const duration = item.endDate - item.beginDate;
+        if (duration <= 0) return;
+
+        // Status tracking for idle/active time
+        if (item.taskName === TrackItemType.StatusTrackItem) {
+            if (item.app === State.Online) {
+                activeTime += duration;
+            } else if (item.app === State.Idle) {
+                idleTime += duration;
+            }
+        }
+
+        // App usage tracking
+        if (item.taskName === TrackItemType.AppTrackItem && item.app) {
+            appDurations[item.app] = (appDurations[item.app] || 0) + duration;
+        }
+
+        // Task tracking
+        if (item.taskName === TrackItemType.LogTrackItem && item.title) {
+            taskDurations[item.title] = (taskDurations[item.title] || 0) + duration;
+        }
+    });
+
+    const sortedApps = Object.entries(appDurations).sort((a, b) => b[1] - a[1]);
+    const mostUsedApps = sortedApps.slice(0, 5).map(([name]) => name);
+    const leastUsedApps = sortedApps.slice(-5).reverse().map(([name]) => name);
+
+    return {
+        idleTimeMs: idleTime,
+        activeTimeMs: activeTime,
+        totalTimeMs: idleTime + activeTime,
+        mostUsedApps,
+        leastUsedApps,
+        taskNameWiseTime: taskDurations,
+        listOfAllAppsUsed: Object.keys(appDurations),
+        listOfAllTaskNamesUsed: Object.keys(taskDurations)
+    };
 }
 
 export function cleanupHrSyncJob() {

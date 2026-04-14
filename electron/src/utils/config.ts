@@ -7,7 +7,7 @@ import Store from 'electron-store';
 
 // Set a different app name in development mode
 if (isDevelopment) {
-    const appName = 'TocklerDev';
+    const appName = 'NovaDev';
     app.setName(appName);
     const appData = app.getPath('appData');
     app.setPath('userData', path.join(appData, appName));
@@ -55,16 +55,16 @@ export const getIcon = (winFileName: string, macFileName: string) => {
 export const getTrayIcon = () => {
     const usePurpleTrayIcon = persisted.get('usePurpleTrayIcon');
     return getIcon(
-        'tockler_icon_big.ico',
-        usePurpleTrayIcon ? 'tockler_icon_tray.png' : 'tockler_icon_trayTemplate.png',
+        'nova_icon_big.ico',
+        usePurpleTrayIcon ? 'nova_icon_tray.png' : 'nova_icon_trayTemplate.png',
     );
 };
 
 export const config = {
     iconTray: getTrayIcon(),
-    iconTrayUpdate: getIcon('tockler_icon_big_update.ico', 'tockler_icon_tray_updateTemplate.png'),
-    iconNotification: getIcon('tockler_icon_big.ico', 'tockler_icon_big.png'),
-    iconWindow: getIcon('tockler_icon_big.ico', 'tockler_icon_big.png'),
+    iconTrayUpdate: getIcon('nova_icon_big_update.ico', 'nova_icon_trayTemplate.png'),
+    iconNotification: getIcon('nova_icon_big.ico', 'nova_icon_big.png'),
+    iconWindow: getIcon('nova_icon_big.ico', 'nova_icon_big.png'),
 
     // a flag to whether the app is running in development mode
     isDev: isDevelopment,

@@ -29,7 +29,7 @@ export const ITEM_TYPES = {
 
 // Constants for localStorage keys
 export const STORAGE_KEYS = {
-    VISIBLE_RANGE: 'tockler_visible_range',
+    VISIBLE_RANGE: 'nova_visible_range',
 };
 
 /**

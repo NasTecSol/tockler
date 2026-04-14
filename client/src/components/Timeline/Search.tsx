@@ -1,8 +1,26 @@
-import { Box, Button, Tooltip, useToast } from '@chakra-ui/react';
+import {
+    Box,
+    Button,
+    Tooltip,
+    useToast,
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogContent,
+    AlertDialogOverlay,
+    useDisclosure,
+    useColorModeValue,
+    Text,
+    VStack,
+    Icon,
+    Flex,
+    Divider,
+} from '@chakra-ui/react';
 import { OnDatesChangeProps } from '@datepicker-react/hooks';
 import { DateTime } from 'luxon';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { AiOutlineLeft, AiOutlineRight, AiOutlineCheckCircle, AiOutlineLogout, AiOutlineClockCircle } from 'react-icons/ai';
 import { Logger } from '../../logger';
 import { getSavedEmpId, getSavedTenant } from '../../auth/authStorage';
 import { useStoreActions, useStoreState } from '../../store/easyPeasy';
@@ -23,6 +41,18 @@ export const Search = memo(() => {
     const liveView = useStoreState((state) => state.liveView);
     const setLiveView = useStoreActions((actions) => actions.setLiveView);
     const loadTimerange = useStoreActions((actions) => actions.loadTimerange);
+
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const cancelRef = useRef<HTMLButtonElement>(null);
+    const [currentTime, setCurrentTime] = useState(DateTime.now());
+
+    // Update time every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(DateTime.now());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     const getErrorDescription = useCallback(async (err: unknown): Promise<string> => {
         if (err instanceof ResponseError) {
@@ -48,7 +78,7 @@ export const Search = memo(() => {
         return 'Unknown error';
     }, []);
 
-    const showCheckToast = (isCheckedIn: boolean) => {
+    const showCheckToast = useCallback((isCheckedIn: boolean) => {
         toast({
             title: isCheckedIn ? 'Checked in' : 'Checked out',
             status: isCheckedIn ? 'success' : 'info',
@@ -56,9 +86,14 @@ export const Search = memo(() => {
             isClosable: true,
             position: 'top',
         });
-    };
+    }, [toast]);
 
+    const isFirstRender = useRef(true);
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         if (timerangeMode === TIMERANGE_MODE_TODAY) {
             showCheckToast(liveView);
         }
@@ -128,6 +163,7 @@ export const Search = memo(() => {
             });
 
             setLiveView(nextLiveView);
+            onClose();
 
             Logger.debug(`User toggled check state to: ${nextLiveView ? 'checked-in' : 'checked-out'}`);
         } catch (err) {
@@ -143,7 +179,7 @@ export const Search = memo(() => {
         } finally {
             setIsSubmittingCheck(false);
         }
-    }, [getDeviceIpCandidate, getErrorDescription, isSubmittingCheck, liveView, setLiveView, toast]);
+    }, [getDeviceIpCandidate, getErrorDescription, isSubmittingCheck, liveView, setLiveView, toast, onClose]);
 
     const handleOnDatesChange = (data: OnDatesChangeProps) => {
         Logger.debug('TIMERANGE:', data);
@@ -212,18 +248,106 @@ export const Search = memo(() => {
                 </Button>
             </Box>
             {showLiveViewButton && (
-                <Box p={1}>
+                <Flex p={1} align="center">
+                    <Flex
+                        align="center"
+                        bg={useColorModeValue('gray.50', 'gray.800')}
+                        px={3}
+                        h="40px"
+                        borderRadius="lg"
+                        borderWidth="1px"
+                        borderColor={useColorModeValue('gray.200', 'gray.700')}
+                        mr={2}
+                        boxShadow="sm"
+                    >
+                        <Icon as={AiOutlineClockCircle} mr={2} color={liveView ? 'green.500' : 'red.500'} />
+                        <Text fontSize="md" fontWeight="bold" fontFamily="mono" letterSpacing="wider">
+                            {currentTime.toFormat('HH:mm:ss')}
+                        </Text>
+                    </Flex>
+
                     <Tooltip placement="bottom" label={liveView ? 'Check-Out' : 'Check-In'}>
                         <Button
-                            onClick={toggleCheckInOut}
+                            onClick={onOpen}
                             colorScheme={liveView ? 'green' : 'red'}
                             isLoading={isSubmittingCheck}
+                            h="40px"
+                            borderRadius="lg"
                         >
                             {checkButtonLabel}
                         </Button>
                     </Tooltip>
-                </Box>
+                </Flex>
             )}
+
+            <AlertDialog
+                isOpen={isOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={onClose}
+                isCentered
+                motionPreset="slideInBottom"
+            >
+                <AlertDialogOverlay backdropFilter="blur(4px)" />
+                <AlertDialogContent borderRadius="2xl" overflow="hidden" boxShadow="2xl">
+                    <AlertDialogHeader
+                        fontSize="lg"
+                        fontWeight="bold"
+                        bg={liveView ? 'green.500' : 'red.500'}
+                        color="white"
+                        display="flex"
+                        alignItems="center"
+                    >
+                        <Icon as={liveView ? AiOutlineLogout : AiOutlineCheckCircle} mr={2} />
+                        Confirm Attendance {liveView ? 'Check-Out' : 'Check-In'}
+                    </AlertDialogHeader>
+
+                    <AlertDialogBody py={6}>
+                        <VStack spacing={4} align="center">
+                            <Box textAlign="center">
+                                <Text fontSize="md" color="gray.500" mb={1}>
+                                    Are you sure you want to {liveView ? 'check-out' : 'check-in'}?
+                                </Text>
+                                <Text fontSize="lg" fontWeight="semibold">
+                                    Current Location Instance: Remote
+                                </Text>
+                            </Box>
+
+                            <Divider />
+
+                            <Flex align="center" direction="column" py={2}>
+                                <Flex align="center" mb={1} color={liveView ? 'green.600' : 'red.600'}>
+                                    <Icon as={AiOutlineClockCircle} mr={2} />
+                                    <Text fontWeight="bold" fontSize="sm" textTransform="uppercase" letterSpacing="wider">
+                                        Current Time
+                                    </Text>
+                                </Flex>
+                                <Text fontSize="4xl" fontWeight="black" fontFamily="mono" letterSpacing="tight">
+                                    {currentTime.toFormat('HH:mm:ss')}
+                                </Text>
+                                <Text fontSize="sm" color="gray.500">
+                                    {currentTime.toFormat('cccc, d MMMM yyyy')}
+                                </Text>
+                            </Flex>
+                        </VStack>
+                    </AlertDialogBody>
+
+                    <AlertDialogFooter bg="gray.50" borderTopWidth="1px">
+                        <Button ref={cancelRef} onClick={onClose} variant="ghost" mr={3}>
+                            Cancel
+                        </Button>
+                        <Button
+                            colorScheme={liveView ? 'green' : 'red'}
+                            onClick={toggleCheckInOut}
+                            isLoading={isSubmittingCheck}
+                            loadingText="Submitting..."
+                            px={8}
+                            borderRadius="lg"
+                        >
+                            Confirm {liveView ? 'Check-Out' : 'Check-In'}
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 });

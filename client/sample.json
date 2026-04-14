@@ -1,0 +1,508 @@
+{
+    "_id": {
+        "$oid": "69d80dfb5b5f8064ad4feff5"
+    },
+    "empId": "NTS111",
+    "attendanceId": "69d740da982c1ad69c48d259",
+    "date": "2026-04-10",
+    "body": {},
+    "activitySession": [
+        {
+            "id": 1,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174187718,
+            "endDate": 1776174193720
+        },
+        {
+            "id": 2,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "NO_TITLE",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174193720,
+            "endDate": 1776174196733
+        },
+        {
+            "id": 3,
+            "app": "Electron",
+            "taskName": "AppTrackItem",
+            "title": "Tockler",
+            "url": null,
+            "color": "#e094c4",
+            "beginDate": 1776174196733,
+            "endDate": 1776174208821
+        },
+        {
+            "id": 4,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174208821,
+            "endDate": 1776174226295
+        },
+        {
+            "id": 5,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174226295,
+            "endDate": 1776174229353
+        },
+        {
+            "id": 6,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174229353,
+            "endDate": 1776174232346
+        },
+        {
+            "id": 7,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174232346,
+            "endDate": 1776174244377
+        },
+        {
+            "id": 8,
+            "app": "Slack",
+            "taskName": "AppTrackItem",
+            "title": "Hashir Zaheer (DM) - NasTecSol - Slack",
+            "url": null,
+            "color": "#97efb9",
+            "beginDate": 1776174244377,
+            "endDate": 1776174250392
+        },
+        {
+            "id": 9,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174250392,
+            "endDate": 1776174253418
+        },
+        {
+            "id": 10,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "NAS-HR-BE-PROD < New Relic - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174253418,
+            "endDate": 1776174256421
+        },
+        {
+            "id": 11,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "continue/core/llm/defaultSystemMessages.ts at main · continuedev/continue - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174256421,
+            "endDate": 1776174259433
+        },
+        {
+            "id": 12,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "MayGo/tockler: An application that tracks your time by monitoring your active window title and idle time. - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174259433,
+            "endDate": 1776174262436
+        },
+        {
+            "id": 13,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "How Chat Works | Continue Docs - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174262436,
+            "endDate": 1776174265448
+        },
+        {
+            "id": 14,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Host LLM for VS Code - Google Gemini - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174265448,
+            "endDate": 1776174271472
+        },
+        {
+            "id": 15,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Introduction - Documentation - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174271472,
+            "endDate": 1776174274484
+        },
+        {
+            "id": 16,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Best Qwen Model for Coding - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174274484,
+            "endDate": 1776174277494
+        },
+        {
+            "id": 17,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Inference Endpoints by Hugging Face - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174277494,
+            "endDate": 1776174280513
+        },
+        {
+            "id": 18,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Hugging Face – The AI community building the future. - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174280513,
+            "endDate": 1776174283497
+        },
+        {
+            "id": 19,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Slack API: Applications | NasTecSol Slack - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174283497,
+            "endDate": 1776174292509
+        },
+        {
+            "id": 20,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174292509,
+            "endDate": 1776174298531
+        },
+        {
+            "id": 21,
+            "app": "Microsoft.Notes",
+            "taskName": "AppTrackItem",
+            "title": "Sticky Notes",
+            "url": null,
+            "color": "#abc13e",
+            "beginDate": 1776174298531,
+            "endDate": 1776174301533
+        },
+        {
+            "id": 22,
+            "app": "Electron",
+            "taskName": "AppTrackItem",
+            "title": "Tockler",
+            "url": null,
+            "color": "#e094c4",
+            "beginDate": 1776174301533,
+            "endDate": 1776174307547
+        },
+        {
+            "id": 23,
+            "app": "Google Chrome",
+            "taskName": "AppTrackItem",
+            "title": "Slack API: Applications | NasTecSol Slack - Google Chrome",
+            "url": null,
+            "color": "#13a3a0",
+            "beginDate": 1776174307547,
+            "endDate": 1776174310552
+        },
+        {
+            "id": 24,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174310552,
+            "endDate": 1776174316571
+        },
+        {
+            "id": 25,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "NO_TITLE",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174316571,
+            "endDate": 1776174319576
+        },
+        {
+            "id": 26,
+            "app": "Search application",
+            "taskName": "AppTrackItem",
+            "title": "Search",
+            "url": null,
+            "color": "#116c93",
+            "beginDate": 1776174319576,
+            "endDate": 1776174322606
+        },
+        {
+            "id": 27,
+            "app": "GitHubDesktop.exe",
+            "taskName": "AppTrackItem",
+            "title": "GitHub Desktop",
+            "url": null,
+            "color": "#b8c934",
+            "beginDate": 1776174322606,
+            "endDate": 1776174379734
+        },
+        {
+            "id": 28,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "tockler",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174379734,
+            "endDate": 1776174391773
+        },
+        {
+            "id": 29,
+            "app": "GitHubDesktop.exe",
+            "taskName": "AppTrackItem",
+            "title": "GitHub Desktop",
+            "url": null,
+            "color": "#b8c934",
+            "beginDate": 1776174391773,
+            "endDate": 1776174418859
+        },
+        {
+            "id": 30,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174418859,
+            "endDate": 1776174424878
+        },
+        {
+            "id": 31,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174424878,
+            "endDate": 1776174436915
+        },
+        {
+            "id": 32,
+            "app": "PERMISSION_ERROR",
+            "taskName": "AppTrackItem",
+            "title": "Active Window undefined",
+            "url": null,
+            "color": "#09f79c",
+            "beginDate": 1776174436915,
+            "endDate": 1776174439923
+        },
+        {
+            "id": 33,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174439923,
+            "endDate": 1776174454968
+        },
+        {
+            "id": 34,
+            "app": "Slack",
+            "taskName": "AppTrackItem",
+            "title": "Hashir Zaheer (DM) - NasTecSol - Slack",
+            "url": null,
+            "color": "#97efb9",
+            "beginDate": 1776174454968,
+            "endDate": 1776174457968
+        },
+        {
+            "id": 35,
+            "app": "PERMISSION_ERROR",
+            "taskName": "AppTrackItem",
+            "title": "Active Window undefined",
+            "url": null,
+            "color": "#09f79c",
+            "beginDate": 1776174457968,
+            "endDate": 1776174460975
+        },
+        {
+            "id": 36,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "tockler",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174460975,
+            "endDate": 1776174476031
+        },
+        {
+            "id": 37,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174476031,
+            "endDate": 1776174482051
+        },
+        {
+            "id": 38,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "tockler",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174482051,
+            "endDate": 1776174488065
+        },
+        {
+            "id": 39,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "Program Manager",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174488065,
+            "endDate": 1776174491075
+        },
+        {
+            "id": 40,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "tockler",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174491075,
+            "endDate": 1776174497101
+        },
+        {
+            "id": 41,
+            "app": "Windows Explorer",
+            "taskName": "AppTrackItem",
+            "title": "Program Manager",
+            "url": null,
+            "color": "#2bf2e8",
+            "beginDate": 1776174497101,
+            "endDate": 1776174500114
+        },
+        {
+            "id": 42,
+            "app": "PERMISSION_ERROR",
+            "taskName": "AppTrackItem",
+            "title": "Active Window undefined",
+            "url": null,
+            "color": "#09f79c",
+            "beginDate": 1776174500114,
+            "endDate": 1776174503125
+        },
+        {
+            "id": 43,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174503125,
+            "endDate": 1776174590397
+        },
+        {
+            "id": 44,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174590397,
+            "endDate": 1776174746797
+        },
+        {
+            "id": 45,
+            "app": "Slack",
+            "taskName": "AppTrackItem",
+            "title": "Hashir Zaheer (DM) - NasTecSol - Slack",
+            "url": null,
+            "color": "#97efb9",
+            "beginDate": 1776174746797,
+            "endDate": 1776174749793
+        },
+        {
+            "id": 46,
+            "app": "Slack",
+            "taskName": "AppTrackItem",
+            "title": "Shoaib Sardar (DM) - NasTecSol - Slack",
+            "url": null,
+            "color": "#97efb9",
+            "beginDate": 1776174749793,
+            "endDate": 1776174758823
+        },
+        {
+            "id": 47,
+            "app": "Antigravity",
+            "taskName": "AppTrackItem",
+            "title": "tockler - Antigravity - Implementation Plan",
+            "url": null,
+            "color": "#27e5b9",
+            "beginDate": 1776174758823,
+            "endDate": 1776174761834
+        },
+        {
+            "id": 48,
+            "app": "MongoDBCompass",
+            "taskName": "AppTrackItem",
+            "title": "MongoDB Compass - Nas_Hr STG/2004.activitysessions",
+            "url": null,
+            "color": "#26e0b8",
+            "beginDate": 1776174761834,
+            "endDate": 1776174776876
+        },
+        {
+            "id": 49,
+            "app": "Electron",
+            "taskName": "AppTrackItem",
+            "title": "Tockler",
+            "url": null,
+            "color": "#e094c4",
+            "beginDate": 1776174776876,
+            "endDate": 1776174779885
+        }
+    ],
+    "createdAt": {
+        "$date": "2026-04-14T13:43:20.521Z"
+    },
+    "updatedAt": {
+        "$date": "2026-04-14T13:53:10.332Z"
+    },
+    "__v": 0
+}

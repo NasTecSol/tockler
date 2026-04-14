@@ -18,7 +18,7 @@ const theThemeHasChanged = () => {
 
 export default class AppManager {
     static async init() {
-        logger.info('Initializing Tockler');
+        logger.info('Initializing Nova');
         initIpcActions();
 
         await dbClient.initDb();

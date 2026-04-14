@@ -13,7 +13,7 @@ let logger = logManager.getLogger('AppIndex');
 // Log app version
 logger.info(`Tockler version: ${app.getVersion()}`);
 
-app.setAppUserModelId('ee.trimatech.tockler');
+app.setAppUserModelId('ee.trimatech.nova');
 
 /* Single Instance Check */
 
@@ -93,15 +93,28 @@ if (gotTheLock) {
 
             WindowManager.initMainWindowEvents();
 
-            if (!config.isDev || config.trayEnabledInDev) {
-                WindowManager.setTrayWindow();
+            // Open main window immediately to allow login even if background services fail
+            WindowManager.openMainWindow();
+
+            // Initialize AppManager (DB and IPC)
+            try {
+                await AppManager.init();
+            } catch (err) {
+                logger.error(`AppManager init failed: ${err}`);
             }
 
-            WindowManager.setNotificationWindow();
+            // Sync background services based on initial login state
+            try {
+                await syncBackgroundServiceState();
+            } catch (err) {
+                logger.error(`syncBackgroundServiceState failed: ${err}`);
+            }
 
-            await AppManager.init();
-
-            await initBackgroundJob();
+            // Monitor login/logout events
+            config.persisted.onDidChange('empId', async (newValue, oldValue) => {
+                logger.debug(`empId changed from ${oldValue} to ${newValue}, syncing background services.`);
+                await syncBackgroundServiceState();
+            });
         } catch (error) {
             logger.error(
                 `App errored in ready event: ${error instanceof Error ? error.toString() : String(error)}`,
@@ -109,6 +122,34 @@ if (gotTheLock) {
             );
         }
     });
+
+    async function syncBackgroundServiceState() {
+        const empId = config.persisted.get('empId');
+        const tenantId = config.persisted.get('tenantId');
+
+        if (empId && tenantId) {
+            logger.info('User is logged in. Initializing background services.');
+
+            if (!config.isDev || config.trayEnabledInDev) {
+                WindowManager.setTrayWindow();
+            }
+
+            WindowManager.setNotificationWindow();
+
+            await initBackgroundJob();
+        } else {
+            logger.info('User is not logged in. Destroying background services.');
+
+            WindowManager.destroyTrayWindow();
+
+            if (WindowManager.notificationWindow) {
+                WindowManager.notificationWindow.close();
+                WindowManager.notificationWindow = null;
+            }
+
+            await cleanupBackgroundJob();
+        }
+    }
 } else {
     logger.debug('Quiting instance.');
     app.quit();

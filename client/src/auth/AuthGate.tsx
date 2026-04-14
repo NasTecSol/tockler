@@ -4,13 +4,15 @@ import {
     Flex,
     FormControl,
     FormLabel,
-    Heading,
     Input,
     Text,
     useColorModeValue,
     useToast,
+    VStack,
 } from '@chakra-ui/react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { NovaLogo } from '../components/Header/NovaLogo';
+import { NovaLogoText } from '../components/Header/NovaLogoText';
 import { employeeLogin } from '../services/employee-login.api';
 import { ResponseError } from '../services/response-error';
 import { getSavedEmpId, getSavedTenant, saveEmpId, saveTenant, saveToken } from './authStorage';
@@ -49,9 +51,6 @@ async function getResponseErrorMessage(error: ResponseError): Promise<string> {
 
 export function AuthGate({ children }: { children: ReactNode }) {
     const toast = useToast();
-    const panelBg = useColorModeValue('white', 'gray.800');
-    const pageBg = useColorModeValue('gray.50', 'gray.900');
-    const borderColor = useColorModeValue('gray.200', 'gray.700');
 
     const [isChecking, setIsChecking] = useState(true);
     const [isAuthed, setIsAuthed] = useState(false);
@@ -127,51 +126,104 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (isAuthed) return <>{children}</>;
 
     return (
-        <Flex minH="100vh" align="center" justify="center" bg={pageBg} px={4}>
+        <Flex
+            minH="100vh"
+            align="center"
+            justify="center"
+            bgGradient={useColorModeValue(
+                'linear(to-br, cyan.50, blue.100, purple.50)',
+                'linear(to-br, #0f172a, #1e293b, #0f172a)'
+            )}
+            px={4}
+        >
             <Box
                 w="full"
                 maxW="md"
-                bg={panelBg}
-                borderWidth="1px"
-                borderColor={borderColor}
-                borderRadius="lg"
-                p={6}
-                boxShadow="lg"
+                p={8}
+                backdropFilter="blur(16px)"
+                bg={useColorModeValue('rgba(255, 255, 255, 0.7)', 'rgba(23, 25, 35, 0.7)')}
+                border="1px solid"
+                borderColor={useColorModeValue('rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.1)')}
+                borderRadius="2xl"
+                boxShadow="2xl"
             >
-                <Heading size="md" mb={1}>
-                    Sign in
-                </Heading>
-                <Text fontSize="sm" color="gray.500" mb={6}>
-                    Enter your tenant and employee credentials to continue.
-                </Text>
+                <VStack spacing={2} mb={8} align="center">
+                    <NovaLogo boxSize="60px" />
+                    <NovaLogoText fontSize="2xl" />
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')} fontWeight="medium">
+                        Focus on what matters.
+                    </Text>
+                </VStack>
 
-                <FormControl mb={4} isRequired>
-                    <FormLabel>Tenant</FormLabel>
-                    <Input value={tenant} onChange={(e) => setTenant(e.target.value)} autoFocus />
-                </FormControl>
+                <VStack spacing={5}>
+                    <FormControl isRequired>
+                        <FormLabel fontSize="sm" fontWeight="bold">Tenant Code</FormLabel>
+                        <Input
+                            placeholder="Enter tenant code"
+                            variant="filled"
+                            bg={useColorModeValue('white', 'gray.800')}
+                            _focus={{ bg: useColorModeValue('white', 'gray.700'), borderColor: 'cyan.500' }}
+                            value={tenant}
+                            onChange={(e) => setTenant(e.target.value)}
+                            autoFocus
+                        />
+                    </FormControl>
 
-                <FormControl mb={4} isRequired>
-                    <FormLabel>Emp ID</FormLabel>
-                    <Input value={empId} onChange={(e) => setEmpId(e.target.value)} />
-                </FormControl>
+                    <FormControl isRequired>
+                        <FormLabel fontSize="sm" fontWeight="bold">Emp ID</FormLabel>
+                        <Input
+                            placeholder="Enter employee ID"
+                            variant="filled"
+                            bg={useColorModeValue('white', 'gray.800')}
+                            _focus={{ bg: useColorModeValue('white', 'gray.700'), borderColor: 'cyan.500' }}
+                            value={empId}
+                            onChange={(e) => setEmpId(e.target.value)}
+                        />
+                    </FormControl>
 
-                <FormControl mb={6} isRequired>
-                    <FormLabel>Password</FormLabel>
-                    <Input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                onSubmit();
-                            }
+                    <FormControl isRequired>
+                        <FormLabel fontSize="sm" fontWeight="bold">Password</FormLabel>
+                        <Input
+                            placeholder="Enter password"
+                            type="password"
+                            variant="filled"
+                            bg={useColorModeValue('white', 'gray.800')}
+                            _focus={{ bg: useColorModeValue('white', 'gray.700'), borderColor: 'cyan.500' }}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    onSubmit();
+                                }
+                            }}
+                        />
+                    </FormControl>
+
+                    <Button
+                        w="full"
+                        size="lg"
+                        bgGradient="linear(to-r, cyan.400, blue.500)"
+                        color="white"
+                        _hover={{
+                            bgGradient: "linear(to-r, cyan.500, blue.600)",
+                            boxShadow: 'xl',
+                            transform: 'translateY(-1px)'
                         }}
-                    />
-                </FormControl>
+                        _active={{
+                            transform: 'translateY(0)',
+                        }}
+                        isLoading={isSubmitting}
+                        isDisabled={!canSubmit}
+                        onClick={onSubmit}
+                        mt={4}
+                    >
+                        Sign In
+                    </Button>
 
-                <Button w="full" colorScheme="blue" isLoading={isSubmitting} isDisabled={!canSubmit} onClick={onSubmit}>
-                    Login
-                </Button>
+                    <Text fontSize="xs" color="gray.500" mt={4} textAlign="center">
+                        Powered by Nas HR
+                    </Text>
+                </VStack>
             </Box>
         </Flex>
     );

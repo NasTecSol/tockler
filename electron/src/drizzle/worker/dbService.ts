@@ -109,7 +109,7 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
     try {
         // Use the passed migrations folder location
         const migrationsFolder = migrationsPath;
-        logger.info('Running database migrations from:', migrationsFolder);
+        console.warn('Running database migrations from:', migrationsFolder);
 
         if (!existsSync(migrationsFolder)) {
             logger.error('Could not find migrations folder at:', migrationsFolder);
@@ -130,7 +130,7 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
 
         // Apply migrations with the default settings
         logger.debug('Running migrations from:', migrationsFolder);
-        logger.info(`Database status: hasKnexTables=${hasKnexTables}, hasAppTables=${hasAppTables}`);
+        console.warn(`Database status: hasKnexTables=${hasKnexTables}, hasAppTables=${hasAppTables}`);
 
         if (hasKnexTables && hasAppTables) {
             logger.info('Knex migration tables found and app tables already exist. Skipping initial migration.');
@@ -182,17 +182,17 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
         }
 
         // Run migrations - this will skip already applied migrations
-        logger.info('Starting drizzle-orm migrations...');
+        console.warn('Starting drizzle-orm migrations...');
         migrate(db, {
             migrationsFolder,
             migrationsTable: 'drizzle_migrations',
         });
-        logger.info('Drizzle-orm migrations completed.');
+        console.warn('Drizzle-orm migrations completed.');
 
         // Insert default data after migrations complete
         await insertDefaultData(db);
 
-        logger.info('Database connected and migrations applied successfully');
+        console.warn('Database connected and migrations applied successfully');
     } catch (error) {
         logger.error('Error connecting to database or applying migrations:', error);
         throw error;

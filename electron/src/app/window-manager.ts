@@ -442,6 +442,11 @@ export default class WindowManager {
     }
 
     static setTrayWindow() {
+        if (this.menubar || this.tray) {
+            logger.debug('Tray window already exists, skipping creation.');
+            return;
+        }
+
         logger.debug('Creating tray window.');
 
         this.tray = new Tray(config.iconTray);
@@ -499,6 +504,20 @@ export default class WindowManager {
                 this.tray.setImage(trayIconWithColor);
             }
         });
+    }
+
+    static destroyTrayWindow() {
+        logger.debug('Destroying tray window.');
+        if (this.menubar) {
+            if (this.menubar.window) {
+                this.menubar.window.close();
+            }
+            this.menubar = null;
+        }
+        if (this.tray) {
+            this.tray.destroy();
+            this.tray = null;
+        }
     }
 
     static setNotificationWindow() {
