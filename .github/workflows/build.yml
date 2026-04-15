@@ -112,11 +112,15 @@ jobs:
               run: echo "PACKAGE_VERSION=$(node -p -e "require('./electron/package.json').version")" >> $GITHUB_ENV
 
             - name: Setup Sentry Release
-              if: matrix.os == 'ubuntu-latest' && secrets.SENTRY_AUTH_TOKEN != ''
+              if: matrix.os == 'ubuntu-latest'
               env:
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
                   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
               run: |
+                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+                    echo "SENTRY_AUTH_TOKEN is not set. Skipping Sentry Release setup."
+                    exit 0
+                  fi
                   pnpm dlx @sentry/cli releases set-commits "${{ env.PACKAGE_VERSION }}" --commit "${{ github.repository }}@${{ github.sha }}"
                   pnpm dlx @sentry/cli releases new "${{ env.PACKAGE_VERSION }}"
 
@@ -217,11 +221,15 @@ jobs:
                   cd ..
 
             - name: Upload Sentry Sourcemaps
-              if: matrix.os == 'ubuntu-latest' && secrets.SENTRY_AUTH_TOKEN != ''
+              if: matrix.os == 'ubuntu-latest'
               env:
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
                   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
               run: |
+                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+                    echo "SENTRY_AUTH_TOKEN is not set. Skipping Sentry Sourcemaps upload."
+                    exit 0
+                  fi
                   pnpm dlx @sentry/cli releases files "${{ env.PACKAGE_VERSION }}" upload-sourcemaps ./client/dist/assets/ --rewrite --url-prefix "~/dist/assets"
                   pnpm dlx @sentry/cli releases files "${{ env.PACKAGE_VERSION }}" list
                   pnpm dlx @sentry/cli releases finalize "${{ env.PACKAGE_VERSION }}"
