@@ -131,6 +131,23 @@ async function findAllDayItemsDb(from: string, to: string, taskName: string) {
     return data;
 }
 
+async function findAllDayItemsForAllTypesDb(from: string, to: string) {
+    console.log('findAllDayItemsForAllTypes', from, to);
+
+    const data = await db
+        .select()
+        .from(trackItems)
+        .where(
+            and(
+                gte(trackItems.endDate, new Date(from).getTime()),
+                lte(trackItems.endDate, new Date(to).getTime()),
+            ),
+        )
+        .orderBy(asc(trackItems.beginDate));
+
+    return data;
+}
+
 async function findFirstChunkLogItemsDb() {
     const items = await db
         .select({
@@ -220,6 +237,15 @@ async function findAllFromLastHoursDb(hours: number) {
     return items;
 }
 
+async function findItemsByIdGreaterThan(lastSyncedId: number, limitCount: number) {
+    return await db
+        .select()
+        .from(trackItems)
+        .where(gte(trackItems.id, lastSyncedId + 1))
+        .orderBy(asc(trackItems.id))
+        .limit(limitCount);
+}
+
 export const trackItemService = {
     createTrackItem,
     updateTrackItemDb,
@@ -234,6 +260,8 @@ export const trackItemService = {
     deleteById,
     deleteByIds,
     findAllFromLastHoursDb,
+    findItemsByIdGreaterThan,
+    findAllDayItemsForAllTypesDb,
 };
 
 export type TrackItemService = typeof trackItemService;

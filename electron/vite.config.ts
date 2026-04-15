@@ -7,13 +7,30 @@ import renderer from 'vite-plugin-electron-renderer';
 
 // Function to copy migrations to dist-electron
 function copyMigrations() {
-    return {
-        name: 'copy-migrations',
-        closeBundle() {
-            const srcDir = resolve(__dirname, 'src/drizzle/migrations');
-            const destDir = resolve(__dirname, 'dist-electron/drizzle/migrations');
+    const srcDir = resolve(__dirname, 'src/drizzle/migrations');
+    const destDir = resolve(__dirname, 'dist-electron/drizzle/migrations');
+
+    // Ensure destination directory exists
+    fs.ensureDirSync(resolve(__dirname, 'dist-electron/drizzle'));
+
+    console.log(`Copying migrations from ${srcDir} to ${destDir}`);
+    try {
+        if (fs.existsSync(srcDir)) {
             fs.copySync(srcDir, destDir, { overwrite: true });
             console.log('✓ Drizzle migrations copied to dist-electron');
+        } else {
+            console.warn('⚠ Migrations source directory not found:', srcDir);
+        }
+    } catch (err) {
+        console.error('Failed to copy migrations:', err);
+    }
+}
+
+function copyMigrationsPlugin() {
+    return {
+        name: 'copy-migrations',
+        writeBundle() {
+            copyMigrations();
         },
     };
 }
@@ -25,6 +42,7 @@ export default defineConfig({
                 // Main process entry
                 entry: 'src/index.ts',
                 onstart(options) {
+                    copyMigrations();
                     options.startup();
                 },
                 vite: {
@@ -43,6 +61,7 @@ export default defineConfig({
                 // Worker thread
                 entry: 'src/drizzle/worker/dbWorker.ts',
                 onstart(options) {
+                    copyMigrations();
                     options.reload();
                 },
                 vite: {
@@ -55,6 +74,6 @@ export default defineConfig({
             },
         ]),
         renderer(),
-        copyMigrations(),
+        copyMigrationsPlugin(),
     ],
 });

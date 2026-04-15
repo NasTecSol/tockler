@@ -11,7 +11,12 @@ export async function findAllDayItems(from: DateTime, to: DateTime, taskName: st
         to: to.valueOf(),
         taskName,
     });
-    // Logger.debug('findAllDayItems result ', data);
+    
+    if (!Array.isArray(data)) {
+        Logger.error('findAllDayItems error or invalid response', data);
+        return [];
+    }
+    
     return data as ITrackItem[];
 }
 

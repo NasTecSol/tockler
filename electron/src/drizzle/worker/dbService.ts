@@ -5,7 +5,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { appSettings } from '../schema';
-import { db, sqlite } from './db';
+import { db, migrationsPath, sqlite } from './db';
 
 const logger = console;
 
@@ -107,14 +107,15 @@ function removeKnexMigrationTables(sqlite: Database): void {
 export async function connectAndSync(sqlite: Database, db: ReturnType<typeof drizzle>) {
     // Run migrations (if needed)
     try {
-        // Use the default migrations folder location
-        const migrationsFolder = join(__dirname, 'drizzle', 'migrations');
-        logger.debug('Checking migrations at:', migrationsFolder);
+        // Use the passed migrations folder location
+        const migrationsFolder = migrationsPath;
+        console.warn('Running database migrations from:', migrationsFolder);
 
         if (!existsSync(migrationsFolder)) {
-            logger.error('Could not find migrations folder');
+            logger.error('Could not find migrations folder at:', migrationsFolder);
             throw new Error('Could not find migrations folder');
         }
+        logger.debug('Migrations folder found.');
 
         // Check if the meta directory exists and create it if it doesn't
         const metaDir = join(migrationsFolder, 'meta');
@@ -129,6 +130,7 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
 
         // Apply migrations with the default settings
         logger.debug('Running migrations from:', migrationsFolder);
+        console.warn(`Database status: hasKnexTables=${hasKnexTables}, hasAppTables=${hasAppTables}`);
 
         if (hasKnexTables && hasAppTables) {
             logger.info('Knex migration tables found and app tables already exist. Skipping initial migration.');
@@ -180,15 +182,17 @@ export async function connectAndSync(sqlite: Database, db: ReturnType<typeof dri
         }
 
         // Run migrations - this will skip already applied migrations
+        console.warn('Starting drizzle-orm migrations...');
         migrate(db, {
             migrationsFolder,
             migrationsTable: 'drizzle_migrations',
         });
+        console.warn('Drizzle-orm migrations completed.');
 
         // Insert default data after migrations complete
         await insertDefaultData(db);
 
-        logger.info('Database connected and migrations applied successfully');
+        console.warn('Database connected and migrations applied successfully');
     } catch (error) {
         logger.error('Error connecting to database or applying migrations:', error);
         throw error;

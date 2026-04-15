@@ -1,5 +1,5 @@
-appId: 'ee.trimatech.tockler'
-productName: 'Tockler'
+appId: 'ee.trimatech.nova'
+productName: 'Nova'
 asar: false
 asarUnpack:
     - scripts
@@ -82,6 +82,6 @@ snap:
 dmg:
     sign: false
 protocols:
-    name: Tockler
+    name: Nova
     schemes:
-        - tockler
+        - nova

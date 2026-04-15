@@ -81,7 +81,7 @@ export default class AppUpdater {
             logger.debug(`Update ${info.version} available, starting download...`);
 
             showNotification({
-                body: `Downloading Tockler version ${info.version}`,
+                body: `Downloading NOVA version ${info.version}`,
                 title: 'Update available',
                 silent: true,
             });
@@ -132,7 +132,7 @@ export default class AppUpdater {
 
             logger.error('AutoUpdater error:', e);
             showNotification({
-                title: 'Tockler update error',
+                title: 'NOVA update error',
                 body: e ? (e as Error).stack || '' : 'unknown',
             });
         });
@@ -205,7 +205,7 @@ export default class AppUpdater {
         } catch (e) {
             logger.error('Error checking updates', e);
             showNotification({
-                title: 'Tockler error',
+                title: 'NOVA error',
                 body: e ? (e as Error).stack || '' : 'unknown',
             });
         }

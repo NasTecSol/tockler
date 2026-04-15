@@ -1,7 +1,7 @@
 import { Flex, Box, Center, Link } from '@chakra-ui/react';
 import { useColorModeValue } from '@chakra-ui/react';
-import { TocklerLogo } from './TocklerLogo';
-import { TocklerLogoText } from './TocklerLogoText';
+import { NovaLogo } from './NovaLogo';
+import { NovaLogoText } from './NovaLogoText';
 
 export const Header = ({ children, brandLinkProps }) => (
     <Flex
@@ -19,10 +19,10 @@ export const Header = ({ children, brandLinkProps }) => (
             <Link {...brandLinkProps} _hover={{ textDecoration: 'none' }}>
                 <Flex>
                     <Center pr={3}>
-                        <TocklerLogo boxSize="28px" />
+                        <NovaLogo boxSize="28px" />
                     </Center>
                     <Box pt="3px">
-                        <TocklerLogoText />
+                        <NovaLogoText />
                     </Box>
                 </Flex>
             </Link>

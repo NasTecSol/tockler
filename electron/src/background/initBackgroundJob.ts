@@ -10,6 +10,7 @@ import {
     watchAndSetStatusTrackItem,
     watchAndSetStatusTrackItemCleanup,
 } from './watchTrackItems/watchAndSetStatusTrackItem';
+import { cleanupHrSyncJob, initHrSyncJob } from './hrSyncService';
 
 let logger = logManager.getLogger('BackgroundJob');
 
@@ -29,6 +30,8 @@ export async function initBackgroundJob() {
     watchAndSetLogTrackItem();
 
     watchForBreakNotification();
+
+    initHrSyncJob();
 }
 
 export async function cleanupBackgroundJob() {
@@ -43,4 +46,6 @@ export async function cleanupBackgroundJob() {
     await watchAndSetLogTrackItemCleanup();
 
     watchForBreakNotificationCleanup();
+
+    cleanupHrSyncJob();
 }
