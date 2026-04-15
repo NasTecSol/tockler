@@ -168,7 +168,7 @@ export default class AppUpdater {
 
         if (!canAutoUpdate) {
             showNotification({
-                body: `Auto updates are not available for this build type. Please check for updates manually at https://github.com/MayGo/tockler/releases.`,
+                body: `Auto updates are not available for this build type. Please check for updates manually at https://github.com/NasTecSol/tockler/releases.`,
                 title: 'Updates unavailable',
                 silent: true,
             });
