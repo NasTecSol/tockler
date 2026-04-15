@@ -163,7 +163,7 @@ export default class WindowManager {
             show: true,
             webPreferences: commonWebPreferences,
             backgroundColor: '#ffffff',
-            title: 'Tockler',
+            title: 'NOVA',
             icon: config.iconWindow,
         });
 
@@ -500,7 +500,7 @@ export default class WindowManager {
             const trayIconWithColor = getNativeTrayIcon(config.iconTray);
 
             if (this.tray && trayIconWithColor) {
-                this.tray.setToolTip('Tockler');
+                this.tray.setToolTip('NOVA');
                 this.tray.setImage(trayIconWithColor);
             }
         });

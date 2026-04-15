@@ -11,7 +11,7 @@ import { logManager } from './utils/log-manager';
 let logger = logManager.getLogger('AppIndex');
 
 // Log app version
-logger.info(`Tockler version: ${app.getVersion()}`);
+logger.info(`NOVA version: ${app.getVersion()}`);
 
 app.setAppUserModelId('ee.trimatech.nova');
 
@@ -54,7 +54,7 @@ if (gotTheLock) {
     contextMenu();
 
     ipcMain.on('close-app', () => {
-        logger.info('Closing Tockler');
+        logger.info('Closing NOVA');
         app.quit();
     });
 

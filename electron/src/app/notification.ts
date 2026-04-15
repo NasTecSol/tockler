@@ -7,7 +7,7 @@ const logger = logManager.getLogger('Notification');
 
 export function showNotification({
     body,
-    title = 'Tockler',
+    title = 'NOVA',
     onClick,
     silent = false,
 }: {
