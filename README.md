@@ -1,21 +1,21 @@
 <p align="center">
   <a href="https://tockler.io/#gh-light-mode-only">
-    <img src="https://github.com/MayGo/tockler/raw/master/screenshots/tockler-logo-light.svg" width="318px" alt="Tockler logo" />
+    <img src="https://github.com/NasTecSol/tockler/raw/master/screenshots/tockler-logo-light.svg" width="318px" alt="Tockler logo" />
   </a>
   <a href="https://tockler.io/#gh-dark-mode-only">
-    <img src="https://github.com/MayGo/tockler/raw/master/screenshots/tockler-logo-dark.svg" width="318px" alt="Tockler logo" />
+    <img src="https://github.com/NasTecSol/tockler/raw/master/screenshots/tockler-logo-dark.svg" width="318px" alt="Tockler logo" />
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/MayGo/tockler/releases/latest">
-    <img src="https://img.shields.io/github/v/release/MayGo/tockler" alt="Release" />
+  <a href="https://github.com/NasTecSol/tockler/releases/latest">
+    <img src="https://img.shields.io/github/v/release/NasTecSol/tockler" alt="Release" />
   </a>
-  <a href="https://github.com/MayGo/tockler/releases">
-    <img src="https://img.shields.io/github/downloads/maygo/tockler/total" alt="Total downloads" />
+  <a href="https://github.com/NasTecSol/tockler/releases">
+    <img src="https://img.shields.io/github/downloads/NasTecSol/tockler/total" alt="Total downloads" />
   </a>
-  <a href="https://github.com/MayGo/tockler/releases/latest">
-    <img src="https://img.shields.io/github/downloads/maygo/tockler/latest/total" alt="Latest downloads" />
+  <a href="https://github.com/NasTecSol/tockler/releases/latest">
+    <img src="https://img.shields.io/github/downloads/NasTecSol/tockler/latest/total" alt="Latest downloads" />
   </a>
 </p>
 
@@ -42,8 +42,8 @@ Tockler is a free application that automatically tracks your computer usage and 
 Tockler is free and open-source software. If you find it useful, please consider supporting its development:
 
 <p align="center">
-  <a href="https://github.com/sponsors/maygo/">
-    <img src="https://img.shields.io/github/sponsors/maygo?style=for-the-badge&logo=github&logoColor=white&color=ea4aaa" alt="Sponsor on GitHub" />
+  <a href="https://github.com/sponsors/NasTecSol/">
+    <img src="https://img.shields.io/github/sponsors/NasTecSol?style=for-the-badge&logo=github&logoColor=white&color=ea4aaa" alt="Sponsor on GitHub" />
   </a>
   <a href="https://opencollective.com/tockler">
     <img src="https://img.shields.io/badge/Open%20Collective-Support-7FADF2?style=for-the-badge&logo=opencollective&logoColor=white" alt="Support on Open Collective" />
@@ -62,7 +62,7 @@ Tockler is free and open-source software. If you find it useful, please consider
 ## Download
 
 <p align="center">
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/All%20Versions-Release%20History-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="View all releases" />
   </a>
 </p>
@@ -70,30 +70,30 @@ Tockler is free and open-source software. If you find it useful, please consider
 ### Windows
 
 <p align="center">
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20Universal%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Universal Setup" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20x64%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows x64 Setup" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20ARM64%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows ARM64 Setup" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%2032--bit%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows 32-bit Setup" />
   </a>
 </p>
 <p align="center">
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20Universal%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Universal Portable" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20x64%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows x64 Portable" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%20ARM64%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows ARM64 Portable" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Windows%2032--bit%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows 32-bit Portable" />
   </a>
 </p>
@@ -101,10 +101,10 @@ Tockler is free and open-source software. If you find it useful, please consider
 ### macOS
 
 <p align="center">
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/macOS%20Universal%20(DMG)-Download-999999?style=for-the-badge&logo=apple&logoColor=white" alt="Download macOS Universal DMG" />
   </a>
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/macOS%20Apple%20Silicon%20(DMG)-Download-999999?style=for-the-badge&logo=apple&logoColor=white" alt="Download macOS Apple Silicon DMG" />
   </a>
 </p>
@@ -112,7 +112,7 @@ Tockler is free and open-source software. If you find it useful, please consider
 ### Linux
 
 <p align="center">
-  <a href='https://github.com/MayGo/tockler/releases/latest'>
+  <a href='https://github.com/NasTecSol/tockler/releases/latest'>
     <img src="https://img.shields.io/badge/Linux%20AppImage-Download-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download Linux AppImage" />
   </a>
 </p>
@@ -121,21 +121,21 @@ Tockler is free and open-source software. If you find it useful, please consider
 
 ### Light Theme
 
-![Timeline](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-timeline.png 'Timeline')
-![Settings](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-settings.png 'Settings')
-![Summary](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-summary-calendar.png 'Summary')
-![Summary](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-summary-chart.png 'Summary')
-![Search](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-search.png 'Search')
-![Tray window](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-tray.png 'Tray window')
+![Timeline](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-timeline.png 'Timeline')
+![Settings](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-settings.png 'Settings')
+![Summary](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-summary-calendar.png 'Summary')
+![Summary](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-summary-chart.png 'Summary')
+![Search](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-search.png 'Search')
+![Tray window](https://github.com/NasTecSol/tockler/raw/master/screenshots/light/tockler-tray.png 'Tray window')
 
 ### Dark Theme
 
-![Timeline](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-timeline.png 'Timeline')
-![Settings](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-settings.png 'Settings')
-![Summary](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-summary-calendar.png 'Summary')
-![Summary](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-summary-chart.png 'Summary')
-![Search](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-search.png 'Search')
-![Tray window](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-tray.png 'Tray window')
+![Timeline](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-timeline.png 'Timeline')
+![Settings](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-settings.png 'Settings')
+![Summary](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-summary-calendar.png 'Summary')
+![Summary](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-summary-chart.png 'Summary')
+![Search](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-search.png 'Search')
+![Tray window](https://github.com/NasTecSol/tockler/raw/master/screenshots/dark/tockler-tray.png 'Tray window')
 
 ## Technologies
 
@@ -159,7 +159,7 @@ Tockler is built with modern web technologies:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Maygo/tockler.git
+git clone https://github.com/NasTecSol/tockler.git
 cd tockler
 ```
 
@@ -207,6 +207,6 @@ Feel free to:
 
 Tockler is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
 
-MayGo (https://github.com/MayGo)
+MayGo (https://github.com/NasTecSol)
 
 Created by Maigo Erit @ <a href="https://trimatech.dev" target="_blank">trimatech.dev</a>

@@ -3,12 +3,12 @@
     "productName": "Nova",
     "version": "4.0.23",
     "description": "Nova",
-    "author": "Maigo Erit <maigo.erit@gmail.com>",
+    "author": "NasTecSol",
     "license": "GPL-2.0",
     "main": "dist-electron/index.js",
     "repository": {
         "type": "git",
-        "url": "git@github.com:MayGo/tockler.git"
+        "url": "git@github.com:NasTecSol/tockler.git"
     },
     "pnpm": {
         "supportedArchitectures": {
