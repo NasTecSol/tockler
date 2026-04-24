@@ -21,7 +21,7 @@
 
 ## Overview
 
-Nova is a free application that automatically tracks your computer usage and working time. It provides detailed insights into:
+Nova is a NAS HR application that automatically tracks your computer usage and working time. It provides detailed insights into:
 
 -   Application usage and window titles
 -   Computer state (idle, offline, online)
