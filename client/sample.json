@@ -5,7 +5,15 @@
     "empId": "NTS111",
     "attendanceId": "69d740da982c1ad69c48d259",
     "date": "2026-04-10",
-    "body": {},
+    "body": {
+        //summarise the activity session
+        //i.e idle time, active time, total time
+        //most used apps
+        //least used apps
+        //task name wise time
+        //list of all apps used
+        //list of all task names used
+    },
     "activitySession": [
         {
             "id": 1,
