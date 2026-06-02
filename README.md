@@ -21,7 +21,7 @@
 
 ## Overview
 
-Nova is a free application that automatically tracks your computer usage and working time. It provides detailed insights into:
+Nova is a NAS HR application that automatically tracks your computer usage and working time. It provides detailed insights into:
 
 -   Application usage and window titles
 -   Computer state (idle, offline, online)
@@ -191,9 +191,9 @@ pnpm start
 
 Logs are stored in the following locations:
 
--   Linux: `~/.config/tockler/logs/main.log`
--   macOS: `~/Library/Logs/tockler/main.log`
--   Windows: `%USERPROFILE%\AppData\Roaming\tockler\logs\main.log`
+-   Linux: `~/.config/Nova/logs/main.log`
+-   macOS: `~/Library/Logs/Nova/main.log`
+-   Windows: `%USERPROFILE%\AppData\Roaming\Nova\logs\main.log`
 
 ## Feedback
 
