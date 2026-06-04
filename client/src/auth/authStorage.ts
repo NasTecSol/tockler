@@ -1,5 +1,8 @@
 const EMP_ID_STORAGE_KEY = 'nashr_empId';
+const EMP_DB_ID_STORAGE_KEY = 'nashr_employeeDbId';
 const TENANT_STORAGE_KEY = 'nashr_tenant';
+const TENANT_NAME_STORAGE_KEY = 'nashr_tenantName';
+const TENANT_LOGO_STORAGE_KEY = 'nashr_tenantLogo';
 const TOKEN_STORAGE_KEY = 'nashr_token';
 
 // Helper to push values to the electron main process config store
@@ -46,9 +49,75 @@ export function saveTenant(tenant: string): void {
     pushToElectronBridge('tenantId', tenant);
 }
 
+export function getSavedTenantName(): string | null {
+    try {
+        const tenantName = localStorage.getItem(TENANT_NAME_STORAGE_KEY);
+        return tenantName && tenantName.trim().length > 0 ? tenantName : null;
+    } catch {
+        return null;
+    }
+}
+
+export function saveTenantName(tenantName: string): void {
+    localStorage.setItem(TENANT_NAME_STORAGE_KEY, tenantName);
+    pushToElectronBridge('tenantName', tenantName);
+}
+
+export function getSavedTenantLogo(): string | null {
+    try {
+        const tenantLogo = localStorage.getItem(TENANT_LOGO_STORAGE_KEY);
+        return tenantLogo && tenantLogo.trim().length > 0 ? tenantLogo : null;
+    } catch {
+        return null;
+    }
+}
+
+export function saveTenantLogo(tenantLogo: string): void {
+    localStorage.setItem(TENANT_LOGO_STORAGE_KEY, tenantLogo);
+    pushToElectronBridge('tenantLogo', tenantLogo);
+}
+
 export function clearTenant(): void {
     localStorage.removeItem(TENANT_STORAGE_KEY);
+    localStorage.removeItem(TENANT_NAME_STORAGE_KEY);
+    localStorage.removeItem(TENANT_LOGO_STORAGE_KEY);
+    localStorage.removeItem(EMP_DB_ID_STORAGE_KEY);
     pushToElectronBridge('tenantId', null);
+    pushToElectronBridge('tenantName', null);
+    pushToElectronBridge('tenantLogo', null);
+    pushToElectronBridge('isCheckedIn', null);
+    pushToElectronBridge('employeeDbId', null);
+
+    try {
+        if (typeof window !== 'undefined' && window.electronBridge?.sendIpc) {
+            window.electronBridge.sendIpc('check-in-status-changed', false);
+        }
+    } catch {
+        // ignore
+    }
+}
+
+export function saveCheckedInStatus(isCheckedIn: boolean): void {
+    pushToElectronBridge('isCheckedIn', isCheckedIn ? 'true' : 'false');
+}
+
+export function getSavedEmpDbId(): string | null {
+    try {
+        const empDbId = localStorage.getItem(EMP_DB_ID_STORAGE_KEY);
+        return empDbId && empDbId.trim().length > 0 ? empDbId : null;
+    } catch {
+        return null;
+    }
+}
+
+export function saveEmpDbId(empDbId: string): void {
+    localStorage.setItem(EMP_DB_ID_STORAGE_KEY, empDbId);
+    pushToElectronBridge('employeeDbId', empDbId);
+}
+
+export function clearEmpDbId(): void {
+    localStorage.removeItem(EMP_DB_ID_STORAGE_KEY);
+    pushToElectronBridge('employeeDbId', null);
 }
 
 export function getSavedToken(): string | null {

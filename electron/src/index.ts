@@ -58,6 +58,12 @@ if (gotTheLock) {
         app.quit();
     });
 
+    ipcMain.on('check-in-status-changed', async (_, isCheckedIn: boolean) => {
+        logger.debug(`IPC event: check-in-status-changed to ${isCheckedIn}`);
+        config.persisted.set('isCheckedIn', isCheckedIn ? 'true' : 'false');
+        await syncBackgroundServiceState();
+    });
+
     app.on('will-quit', async () => {
         logger.debug('will-quit');
         // Clean up any resources here that need to be terminated
@@ -115,6 +121,11 @@ if (gotTheLock) {
                 logger.debug(`empId changed from ${oldValue} to ${newValue}, syncing background services.`);
                 await syncBackgroundServiceState();
             });
+
+            config.persisted.onDidChange('isCheckedIn', async (newValue, oldValue) => {
+                logger.debug(`isCheckedIn changed from ${oldValue} to ${newValue}, syncing background services.`);
+                await syncBackgroundServiceState();
+            });
         } catch (error) {
             logger.error(
                 `App errored in ready event: ${error instanceof Error ? error.toString() : String(error)}`,
@@ -126,9 +137,10 @@ if (gotTheLock) {
     async function syncBackgroundServiceState() {
         const empId = config.persisted.get('empId');
         const tenantId = config.persisted.get('tenantId');
+        const isCheckedIn = config.persisted.get('isCheckedIn') === 'true';
 
-        if (empId && tenantId) {
-            logger.info('User is logged in. Initializing background services.');
+        if (empId && tenantId && isCheckedIn) {
+            logger.info('User is logged in and checked-in. Initializing background services.');
 
             if (!config.isDev || config.trayEnabledInDev) {
                 WindowManager.setTrayWindow();
@@ -138,7 +150,7 @@ if (gotTheLock) {
 
             await initBackgroundJob();
         } else {
-            logger.info('User is not logged in. Destroying background services.');
+            logger.info('User is not logged in or is checked-out. Destroying background services.');
 
             WindowManager.destroyTrayWindow();
 
