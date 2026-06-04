@@ -1,4 +1,4 @@
-import { Flex, Box, Center, Link, Image } from '@chakra-ui/react';
+import { Flex, Box, Link, Image } from '@chakra-ui/react';
 import { useColorModeValue } from '@chakra-ui/react';
 import logoNassHR from '../../assets/icons/logoNassHR.png';
 
