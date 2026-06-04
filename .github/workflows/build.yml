@@ -212,11 +212,11 @@ jobs:
                   pnpm build
                   pnpm prepare_client
                   if [[ "${{ matrix.os }}" == "macos-"* ]]; then
-                    pnpm release -- --mac --arch=${{ matrix.arch }}
+                    pnpm release --mac --arch=${{ matrix.arch }}
                   elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-                    pnpm release -- --win
+                    pnpm release --win
                   elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-                    pnpm release -- --linux
+                    pnpm release --linux
                   fi
                   cd ..
 
