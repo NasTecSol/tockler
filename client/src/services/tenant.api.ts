@@ -48,5 +48,5 @@ export async function fetchTenantIdFromDomain(query: string): Promise<TenantDeta
         };
     }
 
-    throw new Error(data?.message || `Tenant details not found for query: ${subdomain}`);
+    throw new Error(data?.message || `Tenant details not found for query: ${query}`);
 }

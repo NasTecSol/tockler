@@ -33,6 +33,8 @@ export const Search = memo(() => {
     const liveView = useStoreState((state) => state.liveView);
     const setLiveView = useStoreActions((actions) => actions.setLiveView);
     const loadTimerange = useStoreActions((actions) => actions.loadTimerange);
+    const setVisibleTimerange = useStoreActions((actions) => actions.setVisibleTimerange);
+    const setCheckInTime = useStoreActions((actions) => actions.setCheckInTime);
 
     const [currentTime, setCurrentTime] = useState(DateTime.now());
 
@@ -60,16 +62,51 @@ export const Search = memo(() => {
 
         const checkStatus = async () => {
             try {
-                const todayStr = DateTime.now().toFormat('yyyy-LL-dd');
-                console.log(`Polling check-in status for ID: ${activeId} on date: ${todayStr}`);
-                const records = await fetchCheckInData(activeId, todayStr);
-                const isCheckedIn = records.some(entry => entry.checkInTime && !entry.checkOutTime);
-                
-                setLiveView(isCheckedIn);
-                saveCheckedInStatus(isCheckedIn);
+                const dateStr = timerange[0].toFormat('yyyy-LL-dd');
+                console.log(`Polling check-in status for ID: ${activeId} on date: ${dateStr}`);
+                const records = await fetchCheckInData(activeId, dateStr);
 
-                if (window.electronBridge?.sendIpc) {
-                    window.electronBridge.sendIpc('check-in-status-changed', isCheckedIn);
+                const isToday = DateTime.now().hasSame(timerange[0], 'day');
+                if (isToday) {
+                    const isCheckedIn = records.some(entry => entry.checkInTime && !entry.checkOutTime);
+                    setLiveView(isCheckedIn);
+                    saveCheckedInStatus(isCheckedIn);
+                    
+                    if (window.electronBridge?.sendIpc) {
+                        window.electronBridge.sendIpc('check-in-status-changed', isCheckedIn);
+                    }
+                }
+
+                // Automatically set the visible range to checkInTime to checkInTime + 8 hours
+                const checkedInRecords = records.filter(entry => entry.checkInTime);
+                if (checkedInRecords.length > 0) {
+                    checkedInRecords.sort((a, b) => new Date(a.checkInTime!).getTime() - new Date(b.checkInTime!).getTime());
+                    const earliestCheckInStr = checkedInRecords[0].checkInTime;
+                    if (earliestCheckInStr) {
+                        const checkInDt = DateTime.fromISO(earliestCheckInStr);
+                        const endDt = checkInDt.plus({ hours: 8 });
+                        
+                        console.log(`[ATTENDANCE SHIFT TIMELINE] Earliest check-in time found: ${earliestCheckInStr}`);
+                        console.log(`[ATTENDANCE SHIFT TIMELINE] Setting visible range: Start = ${checkInDt.toFormat('yyyy-MM-dd HH:mm:ss')}, End = ${endDt.toFormat('yyyy-MM-dd HH:mm:ss')} (8h onwards)`);
+
+                        setVisibleTimerange([checkInDt, endDt]);
+                        if (isToday) {
+                            setCheckInTime(earliestCheckInStr);
+                        } else {
+                            setCheckInTime(null);
+                        }
+                    }
+                } else {
+                    // Fallback to default 8-hour range of the selected day (e.g. 09:00 to 17:00)
+                    const defaultStart = timerange[0].startOf('day').set({ hour: 9 });
+                    const defaultEnd = defaultStart.plus({ hours: 8 });
+                    
+                    console.log(`[ATTENDANCE SHIFT TIMELINE] No check-in records found. Setting default viewport: Start = ${defaultStart.toFormat('yyyy-MM-dd HH:mm:ss')}, End = ${defaultEnd.toFormat('yyyy-MM-dd HH:mm:ss')} (8h shift fallback)`);
+
+                    setVisibleTimerange([defaultStart, defaultEnd]);
+                    if (isToday) {
+                        setCheckInTime(null);
+                    }
                 }
             } catch (err) {
                 Logger.error('Failed to fetch check-in status:', err);
@@ -91,14 +128,14 @@ export const Search = memo(() => {
             }
         };
 
-        // Check immediately on mount
+        // Check immediately on mount/date change
         checkStatus();
 
         // Check periodically based on sync interval
         const intervalId = setInterval(checkStatus, SYNC_INTERVAL_MS);
 
         return () => clearInterval(intervalId);
-    }, [setLiveView, toast]);
+    }, [timerange, setLiveView, setVisibleTimerange, setCheckInTime, toast]);
 
     const showCheckToast = useCallback((isCheckedIn: boolean) => {
         toast({

@@ -12,8 +12,7 @@ import {
     Image,
 } from '@chakra-ui/react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { NovaLogo } from '../components/Header/NovaLogo';
-import { NovaLogoText } from '../components/Header/NovaLogoText';
+import logoNassHR from '../assets/icons/logoNassHR.png';
 import { employeeLogin } from '../services/employee-login.api';
 import { ResponseError } from '../services/response-error';
 import { fetchTenantIdFromDomain, TenantDetails } from '../services/tenant.api';
@@ -195,27 +194,29 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
             console.log('Login successful response:', responseData);
 
+            const isSuccess = responseData?.success !== false;
+            const tokenValue = responseData?.data?.token || responseData?.token;
+            const message = responseData?.message || 'Invalid credentials or missing authentication token.';
+
+            if (!isSuccess || !tokenValue) {
+                throw new Error(message);
+            }
+
             saveTenant(tenant.trim());
             saveTenantName(tenantName);
             saveTenantLogo(tenantLogo);
             saveEmpId(empId.trim());
+            saveToken(tokenValue);
 
-            const tokenValue = responseData?.data?.token || responseData?.token;
-            if (tokenValue) {
-                saveToken(tokenValue);
-
-                // Decode token to extract MongoDB employee _id
-                const decoded = decodeJwt(tokenValue);
-                console.log('Decoded JWT payload:', decoded);
-                
-                const employeeDbId = decoded?._id || decoded?.id || decoded?.employeeId || decoded?.user?._id || decoded?.employee?._id || decoded?.sub;
-                if (employeeDbId) {
-                    saveEmpDbId(employeeDbId);
-                } else {
-                    console.warn('Employee DB ID (_id) not found in decoded JWT token claims:', decoded);
-                }
+            // Decode token to extract MongoDB employee _id
+            const decoded = decodeJwt(tokenValue);
+            console.log('Decoded JWT payload:', decoded);
+            
+            const employeeDbId = decoded?._id || decoded?.id || decoded?.employeeId || decoded?.user?._id || decoded?.employee?._id || decoded?.sub;
+            if (employeeDbId) {
+                saveEmpDbId(employeeDbId);
             } else {
-                console.warn('Authentication token not found in login response:', responseData);
+                console.warn('Employee DB ID (_id) not found in decoded JWT token claims:', decoded);
             }
 
             setIsAuthed(true);
@@ -274,9 +275,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
                 borderRadius="2xl"
                 boxShadow="2xl"
             >
-                <VStack spacing={2} mb={8} align="center">
-                    <NovaLogo boxSize="60px" />
-                    <NovaLogoText fontSize="2xl" />
+                <VStack spacing={4} mb={8} align="center">
+                    <Image
+                        src={logoNassHR}
+                        alt="Nass HR Logo"
+                        h="55px"
+                        objectFit="contain"
+                    />
                     <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')} fontWeight="medium">
                         Focus on what matters.
                     </Text>

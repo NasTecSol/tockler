@@ -30,6 +30,9 @@ export interface StoreModel {
     liveView: boolean;
     setLiveView: Action<StoreModel, boolean>;
 
+    checkInTime: string | null;
+    setCheckInTime: Action<StoreModel, string | null>;
+
     isLoading: boolean;
     setIsLoading: Action<StoreModel, boolean>;
 
@@ -67,6 +70,11 @@ const mainStore = createStore<StoreModel>({
     liveView: false,
     setLiveView: action((state, payload) => {
         state.liveView = payload;
+    }),
+
+    checkInTime: null,
+    setCheckInTime: action((state, payload) => {
+        state.checkInTime = payload;
     }),
 
     isLoading: false,
@@ -158,13 +166,15 @@ const mainStore = createStore<StoreModel>({
         actions.setTimeItems(addToTimelineItems(timeItems, payload));
     }),
     bgSyncInterval: thunk(async (actions, _, { getState }) => {
-        const { isLoading, timerange, visibleTimerange, timerangeMode, lastRequestTime, liveView } = getState();
+        const { isLoading, timerange, visibleTimerange, timerangeMode, lastRequestTime, liveView, checkInTime } = getState();
         if (!isLoading) {
             if (timerangeMode === TIMERANGE_MODE_TODAY && liveView) {
                 actions.bgSync(lastRequestTime);
                 actions.setLastRequestTime(DateTime.now());
 
-                actions.setVisibleTimerange(getCenteredTimerange(timerange, visibleTimerange, lastRequestTime));
+                if (!checkInTime) {
+                    actions.setVisibleTimerange(getCenteredTimerange(timerange, visibleTimerange, lastRequestTime));
+                }
 
                 if (lastRequestTime.day !== timerange[1].day) {
                     Logger.debug('Day changed. Setting today as timerange.');

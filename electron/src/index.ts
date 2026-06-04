@@ -1,4 +1,9 @@
-//require('events').EventEmitter.defaultMaxListeners = 30;
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from the root .env file
+dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config(); // Fallback to current working directory .env
 
 import { app, ipcMain } from 'electron';
 import contextMenu from 'electron-context-menu';

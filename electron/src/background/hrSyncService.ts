@@ -14,7 +14,8 @@ export function initHrSyncJob() {
     logger.info('Initializing HR sync job...');
     
     // Default to the correct HR backend URL (from vite/electron environment)
-    const backendUrl = process.env.VITE_HR_BACKEND_URL || process.env.HR_BACKEND_URL || 'https://dev.nashrms.com';
+    const backendUrl = process.env.VITE_HR_BACKEND_URL || process.env.HR_BACKEND_URL || 'https://www.nashrms.com';
+    logger.info(`HR sync job target backend URL resolved to: ${backendUrl}`);
 
     syncInterval = setInterval(async () => {
         try {

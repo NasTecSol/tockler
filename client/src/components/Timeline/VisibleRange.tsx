@@ -16,6 +16,7 @@ export enum RangeType {
 export const VisibleRange = memo(() => {
     const timerange = useStoreState((state) => state.timerange);
     const visibleTimerange = useStoreState((state) => state.visibleTimerange);
+    const checkInTime = useStoreState((state) => state.checkInTime);
     const setVisibleTimerange = useStoreActions((actions) => actions.setVisibleTimerange);
 
     // State for time inputs
@@ -156,7 +157,7 @@ export const VisibleRange = memo(() => {
     };
 
     return (
-        <Flex direction="column" gap={3}>
+        <Flex direction="column" gap={3} pointerEvents={checkInTime ? "none" : "auto"} opacity={checkInTime ? 0.6 : 1}>
             <Flex alignItems="center" justifyContent="end">
                 <HStack spacing={3}>
                     <Box maxWidth="120px">
