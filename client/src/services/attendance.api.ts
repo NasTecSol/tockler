@@ -21,7 +21,8 @@ export async function fetchCheckInData(empId: string, dateStr: string): Promise<
         throw new Error(`Missing tenant ID or token (tenant: ${tenant}, token: ${token ? 'present' : 'missing'})`);
     }
 
-    const url = `https://dev.nashrms.com/api/c-emp-check-in-out/filter?employeeId=${encodeURIComponent(empId)}&startDate=${dateStr}&endDate=${dateStr}`;
+    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL;
+    const url = `${backendUrl}/api/c-emp-check-in-out/filter?employeeId=${encodeURIComponent(empId)}&startDate=${dateStr}&endDate=${dateStr}`;
 
     const response = await fetch(url, {
         method: 'GET',

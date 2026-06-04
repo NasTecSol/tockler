@@ -9,7 +9,8 @@ export interface EmployeeLoginRequest {
 
 export async function employeeLogin(payload: EmployeeLoginRequest): Promise<unknown> {
     const { tenant, ...bodyPayload } = payload;
-    const response = await fetch('https://dev.nashrms.com/api/employee/login', {
+    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL;
+    const response = await fetch(`${backendUrl}/api/employee/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

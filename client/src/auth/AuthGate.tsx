@@ -121,7 +121,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
         try {
             const storedHistory = localStorage.getItem('nashr_tenant_search_history');
             if (storedHistory) {
-                setHistory(JSON.parse(storedHistory));
+                const parsed = JSON.parse(storedHistory);
+                setHistory(Array.isArray(parsed) ? parsed.slice(0, 2) : []);
             }
         } catch {
             // ignore
@@ -143,7 +144,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         // Save to history
         setHistory((prev) => {
             const filtered = prev.filter((t) => String(t.tenantId) !== idStr);
-            const updated = [item, ...filtered].slice(0, 5); // limit to 5
+            const updated = [item, ...filtered].slice(0, 2); // limit to 2
             localStorage.setItem('nashr_tenant_search_history', JSON.stringify(updated));
             return updated;
         });
@@ -343,7 +344,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
                             <VStack align="stretch" spacing={3} w="full">
                                 <Flex gap={2}>
                                     <Input
-                                        placeholder="Enter tenant ID, name, or domain"
+                                        placeholder="Search Organization.."
                                         variant="filled"
                                         bg={useColorModeValue('white', 'gray.800')}
                                         _focus={{ bg: useColorModeValue('white', 'gray.700'), borderColor: 'cyan.500' }}
