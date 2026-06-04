@@ -8,13 +8,14 @@ import { logManager } from '../utils/log-manager';
 const logger = logManager.getLogger('HrSyncService');
 
 let syncInterval: NodeJS.Timeout | null = null;
-const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const SYNC_INTERVAL_MS = parseInt(process.env.VITE_SYNC_INTERVAL_MS || '300000', 10);
 
 export function initHrSyncJob() {
     logger.info('Initializing HR sync job...');
     
     // Default to the correct HR backend URL (from vite/electron environment)
-    const backendUrl = process.env.VITE_HR_BACKEND_URL || process.env.HR_BACKEND_URL || 'https://dev.nashrms.com';
+    const backendUrl = process.env.VITE_HR_BACKEND_URL || process.env.HR_BACKEND_URL || 'https://www.nashrms.com';
+    logger.info(`HR sync job target backend URL resolved to: ${backendUrl}`);
 
     syncInterval = setInterval(async () => {
         try {

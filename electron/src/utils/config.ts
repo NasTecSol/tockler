@@ -40,8 +40,12 @@ interface StoreType {
     };
     wasMaximizedOrFullScreen: boolean;
     empId?: string | null;
+    employeeDbId?: string | null;
     tenantId?: string | null;
+    tenantName?: string | null;
+    tenantLogo?: string | null;
     token?: string | null;
+    isCheckedIn?: string | null;
     lastSyncedId?: number;
 }
 

@@ -43,6 +43,7 @@
         "release": "electron-builder -c electron-builder.yml"
     },
     "dependencies": {
+        "dotenv": "^16.4.7",
         "@sentry/electron": "^2.5.4",
         "active-win": "8.2.1",
         "better-sqlite3": "^11.8.1",
