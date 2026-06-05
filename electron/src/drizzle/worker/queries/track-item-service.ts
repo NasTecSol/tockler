@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, like, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, like, lte, lt, sql } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { State } from '../../../enums/state';
 import { TrackItemType } from '../../../enums/track-item-type';
@@ -246,6 +246,16 @@ async function findItemsByIdGreaterThan(lastSyncedId: number, limitCount: number
         .limit(limitCount);
 }
 
+async function pruneSyncedItems(maxSyncedId: number, beforeTime: number) {
+    logger.debug('Pruning synced track items with id <=', maxSyncedId, 'and endDate <', beforeTime);
+    await db.delete(trackItems).where(
+        and(
+            lte(trackItems.id, maxSyncedId),
+            lt(trackItems.endDate, beforeTime)
+        )
+    );
+}
+
 export const trackItemService = {
     createTrackItem,
     updateTrackItemDb,
@@ -262,6 +272,7 @@ export const trackItemService = {
     findAllFromLastHoursDb,
     findItemsByIdGreaterThan,
     findAllDayItemsForAllTypesDb,
+    pruneSyncedItems,
 };
 
 export type TrackItemService = typeof trackItemService;

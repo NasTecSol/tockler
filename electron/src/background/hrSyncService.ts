@@ -35,6 +35,51 @@ export function initHrSyncJob() {
     }, 10000);
 }
 
+function mergeTrackItems(items: TrackItem[]): TrackItem[] {
+    if (items.length === 0) return [];
+
+    // Group items by taskName, app, title, url
+    const groups: Record<string, TrackItem[]> = {};
+    for (const item of items) {
+        const key = `${item.taskName || ''}_${item.app || ''}_${item.title || ''}_${item.url || ''}`;
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key].push(item);
+    }
+
+    const mergedItems: TrackItem[] = [];
+
+    for (const key of Object.keys(groups)) {
+        const groupItems = groups[key];
+        
+        // Sort items by beginDate
+        groupItems.sort((a, b) => a.beginDate - b.beginDate);
+
+        const mergedGroup: TrackItem[] = [];
+        let current = { ...groupItems[0] }; // Clone to avoid unexpected mutations
+
+        for (let i = 1; i < groupItems.length; i++) {
+            const next = groupItems[i];
+            
+            // If they overlap or are contiguous (within a 5-second threshold)
+            const THRESHOLD_MS = 5000; 
+            if (next.beginDate <= current.endDate + THRESHOLD_MS) {
+                // Merge next into current
+                current.endDate = Math.max(current.endDate, next.endDate);
+            } else {
+                mergedGroup.push(current);
+                current = { ...next };
+            }
+        }
+        mergedGroup.push(current);
+        mergedItems.push(...mergedGroup);
+    }
+
+    // Sort back by beginDate to maintain chronological order
+    return mergedItems.sort((a, b) => a.beginDate - b.beginDate);
+}
+
 async function performSync(backendUrl: string) {
     const empId = config.persisted.get('empId');
     const tenantId = config.persisted.get('tenantId');
@@ -45,59 +90,85 @@ async function performSync(backendUrl: string) {
         return;
     }
 
-    const lastSyncedId = config.persisted.get('lastSyncedId') || 0;
-    const fetchLimit = 100; // Process in batches of 100
-
-    const newItems = await dbClient.findItemsByIdGreaterThan(lastSyncedId, fetchLimit);
-
-    if (!newItems || newItems.length === 0) {
-        logger.debug('HR Sync: No new items to sync.');
-        return;
-    }
-
-    // Format current-date as YYYY-MM-DD
     const currentDate = new Date().toISOString().split('T')[0];
+    let lastSyncedId = config.persisted.get('lastSyncedId') || 0;
+    const fetchLimit = 200; // Increased limit per chunk
+    let hasMore = true;
+    let totalSynced = 0;
 
-    // Prepare the payload
-    const payload = {
-        activitySession: newItems
-    };
+    while (hasMore) {
+        const newItems = await dbClient.findItemsByIdGreaterThan(lastSyncedId, fetchLimit);
 
-    const syncUrl = `${backendUrl}/api/activity-session/sync-session/${currentDate}/${empId}`;
-    
-    logger.info(`HR Sync: Attempting to sync ${newItems.length} items to ${syncUrl}`);
-
-    const response = await fetch(syncUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-tenant-id': tenantId,
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-        let errText = '';
-        try {
-            errText = await response.text();
-        } catch {
-            // Error reading body
+        if (!newItems || newItems.length === 0) {
+            logger.debug('HR Sync: No new items to sync.');
+            break;
         }
-        throw new Error(`Server responded with ${response.status}: ${errText}`);
+
+        // Merge/deduplicate items to optimize data transfer and prevent server database bloat
+        const mergedItems = mergeTrackItems(newItems);
+
+        // Prepare the payload
+        const payload = {
+            activitySession: mergedItems
+        };
+
+        const syncUrl = `${backendUrl}/api/activity-session/sync-session/${currentDate}/${empId}`;
+        
+        logger.info(`HR Sync: Attempting to sync ${mergedItems.length} merged items (from ${newItems.length} raw) to ${syncUrl}`);
+
+        const response = await fetch(syncUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-tenant-id': tenantId,
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            let errText = '';
+            try {
+                errText = await response.text();
+            } catch {
+                // Error reading body
+            }
+            throw new Error(`Server responded with ${response.status}: ${errText}`);
+        }
+
+        // Successfully synced this chunk, update lastSyncedId
+        const maxSyncedId = newItems[newItems.length - 1].id;
+        config.persisted.set('lastSyncedId', maxSyncedId);
+        lastSyncedId = maxSyncedId;
+        totalSynced += newItems.length;
+
+        logger.info(`HR Sync: Successfully synced up to item ID ${maxSyncedId}`);
+
+        // If we got fewer items than fetchLimit, we hit the end of the new items
+        if (newItems.length < fetchLimit) {
+            hasMore = false;
+        }
     }
 
-    // Successfully synced, update lastSyncedId to the highest ID processed so it doesn't get synced again
-    const maxSyncedId = newItems[newItems.length - 1].id;
-    config.persisted.set('lastSyncedId', maxSyncedId);
-    
-    logger.info(`HR Sync: Successfully synced up to item ID ${maxSyncedId}`);
+    if (totalSynced > 0) {
+        // Update the activity summary (body) for the current day
+        try {
+            await updateActivitySummary(backendUrl, currentDate, empId, tenantId, token);
+        } catch (error) {
+            logger.error('HR Sync: Failed to update activity summary: ' + (error instanceof Error ? error.message : String(error)));
+        }
 
-    // Update the activity summary (body) for the current day
-    try {
-        await updateActivitySummary(backendUrl, currentDate, empId, tenantId, token);
-    } catch (error) {
-        logger.error('HR Sync: Failed to update activity summary: ' + (error instanceof Error ? error.message : String(error)));
+        // Prune synced items older than recentDaysCount settings to avoid local database bloat
+        try {
+            const dataSettings = await dbClient.fetchDataSettings();
+            const retentionDays = dataSettings.recentDaysCount || 7;
+            const pruneBeforeTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+            const currentLastSyncedId = config.persisted.get('lastSyncedId') || 0;
+            await dbClient.pruneSyncedItems(currentLastSyncedId, pruneBeforeTime);
+            logger.info(`HR Sync: Pruned synced items older than ${retentionDays} days.`);
+        } catch (error) {
+            logger.error('HR Sync: Failed to prune old track items: ' + (error instanceof Error ? error.message : String(error)));
+        }
     }
 }
 
@@ -114,7 +185,9 @@ async function updateActivitySummary(backendUrl: string, currentDate: string, em
         return;
     }
 
-    const body = calculateActivitySummary(allDayItems);
+    // Deduplicate allDayItems before calculating active hours to prevent duplicate listener accumulation artifacts
+    const mergedAllDayItems = mergeTrackItems(allDayItems);
+    const body = calculateActivitySummary(mergedAllDayItems);
     const updateUrl = `${backendUrl}/api/activity-session/update-body/${currentDate}/${empId}`;
 
     logger.info(`HR Sync: Updating activity summary via PATCH ${updateUrl}`);

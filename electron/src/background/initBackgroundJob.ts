@@ -13,9 +13,16 @@ import {
 import { cleanupHrSyncJob, initHrSyncJob } from './hrSyncService';
 
 let logger = logManager.getLogger('BackgroundJob');
+let isRunning = false;
 
 export async function initBackgroundJob() {
+    if (isRunning) {
+        logger.info('Background job is already running. Skipping initialization.');
+        return;
+    }
     logger.debug('Init background service.');
+    isRunning = true;
+
     const dataSettings = await dbClient.fetchDataSettings();
     logger.debug('With settings:', dataSettings);
 
@@ -35,7 +42,12 @@ export async function initBackgroundJob() {
 }
 
 export async function cleanupBackgroundJob() {
+    if (!isRunning) {
+        logger.info('Background job is not running. Skipping cleanup.');
+        return;
+    }
     logger.debug('Cleaning up background job');
+    isRunning = false;
 
     watchForIdleStateCleanup();
     watchForPowerStateCleanup();
