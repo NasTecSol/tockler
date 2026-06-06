@@ -80,6 +80,29 @@ function mergeTrackItems(items: TrackItem[]): TrackItem[] {
     return mergedItems.sort((a, b) => a.beginDate - b.beginDate);
 }
 
+function getLocalDateString(timestamp: number): string {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getLocalDayRange(dateStr: string) {
+    const parts = dateStr.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+
+    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+    return {
+        startISO: start.toISOString(),
+        endISO: end.toISOString()
+    };
+}
+
 async function performSync(backendUrl: string) {
     const empId = config.persisted.get('empId');
     const tenantId = config.persisted.get('tenantId');
@@ -90,11 +113,11 @@ async function performSync(backendUrl: string) {
         return;
     }
 
-    const currentDate = new Date().toISOString().split('T')[0];
     let lastSyncedId = config.persisted.get('lastSyncedId') || 0;
     const fetchLimit = 200; // Increased limit per chunk
     let hasMore = true;
     let totalSynced = 0;
+    const syncedDates = new Set<string>();
 
     while (hasMore) {
         const newItems = await dbClient.findItemsByIdGreaterThan(lastSyncedId, fetchLimit);
@@ -104,36 +127,52 @@ async function performSync(backendUrl: string) {
             break;
         }
 
-        // Merge/deduplicate items to optimize data transfer and prevent server database bloat
-        const mergedItems = mergeTrackItems(newItems);
-
-        // Prepare the payload
-        const payload = {
-            activitySession: mergedItems
-        };
-
-        const syncUrl = `${backendUrl}/api/activity-session/sync-session/${currentDate}/${empId}`;
-        
-        logger.info(`HR Sync: Attempting to sync ${mergedItems.length} merged items (from ${newItems.length} raw) to ${syncUrl}`);
-
-        const response = await fetch(syncUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-tenant-id': tenantId,
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            let errText = '';
-            try {
-                errText = await response.text();
-            } catch {
-                // Error reading body
+        // Group the fetched items by their local date to prevent mismatching dates on the server
+        const itemsByDate: Record<string, TrackItem[]> = {};
+        for (const item of newItems) {
+            const dateStr = getLocalDateString(item.beginDate);
+            if (!itemsByDate[dateStr]) {
+                itemsByDate[dateStr] = [];
             }
-            throw new Error(`Server responded with ${response.status}: ${errText}`);
+            itemsByDate[dateStr].push(item);
+        }
+
+        // Sync each date group separately to the correct date endpoint
+        for (const dateStr of Object.keys(itemsByDate)) {
+            syncedDates.add(dateStr);
+            const dateItems = itemsByDate[dateStr];
+            
+            // Merge/deduplicate items to optimize data transfer and prevent server database bloat
+            const mergedItems = mergeTrackItems(dateItems);
+
+            // Prepare the payload
+            const payload = {
+                activitySession: mergedItems
+            };
+
+            const syncUrl = `${backendUrl}/api/activity-session/sync-session/${dateStr}/${empId}`;
+            
+            logger.info(`HR Sync: Attempting to sync ${mergedItems.length} merged items (from ${dateItems.length} raw) for date ${dateStr} to ${syncUrl}`);
+
+            const response = await fetch(syncUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-tenant-id': tenantId,
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                let errText = '';
+                try {
+                    errText = await response.text();
+                } catch {
+                    // Error reading body
+                }
+                throw new Error(`Server responded with ${response.status}: ${errText}`);
+            }
         }
 
         // Successfully synced this chunk, update lastSyncedId
@@ -151,11 +190,13 @@ async function performSync(backendUrl: string) {
     }
 
     if (totalSynced > 0) {
-        // Update the activity summary (body) for the current day
-        try {
-            await updateActivitySummary(backendUrl, currentDate, empId, tenantId, token);
-        } catch (error) {
-            logger.error('HR Sync: Failed to update activity summary: ' + (error instanceof Error ? error.message : String(error)));
+        // Update the activity summary (body) for each day we synced data for
+        for (const dateStr of syncedDates) {
+            try {
+                await updateActivitySummary(backendUrl, dateStr, empId, tenantId, token);
+            } catch (error) {
+                logger.error(`HR Sync: Failed to update activity summary for ${dateStr}: ` + (error instanceof Error ? error.message : String(error)));
+            }
         }
 
         // Prune synced items older than recentDaysCount settings to avoid local database bloat
@@ -173,12 +214,11 @@ async function performSync(backendUrl: string) {
 }
 
 async function updateActivitySummary(backendUrl: string, currentDate: string, empId: string, tenantId: string, token: string) {
-    const startOfDay = new Date(currentDate).getTime();
-    const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1;
+    const { startISO, endISO } = getLocalDayRange(currentDate);
 
     const allDayItems = await dbClient.findAllDayItemsForAllTypesDb(
-        new Date(startOfDay).toISOString(),
-        new Date(endOfDay).toISOString()
+        startISO,
+        endISO
     );
 
     if (!allDayItems || allDayItems.length === 0) {
@@ -203,9 +243,9 @@ async function updateActivitySummary(backendUrl: string, currentDate: string, em
     });
 
     if (!response.ok) {
-        logger.error(`HR Sync: Failed to update activity summary. Server responded with ${response.status}`);
+        logger.error(`HR Sync: Failed to update activity summary for ${currentDate}. Server responded with ${response.status}`);
     } else {
-        logger.info('HR Sync: Activity summary updated successfully.');
+        logger.info(`HR Sync: Activity summary updated successfully for ${currentDate}.`);
     }
 }
 
