@@ -15,7 +15,7 @@ import { Logger } from '../../logger';
 import { getSavedEmpId, getSavedTenant, saveCheckedInStatus, clearEmpId, clearTenant, clearToken, getSavedEmpDbId } from '../../auth/authStorage';
 import { useStoreActions, useStoreState } from '../../store/easyPeasy';
 import { TIMERANGE_MODE_TODAY } from '../../store/mainStore';
-import { fetchCheckInData } from '../../services/attendance.api';
+import { fetchAttendanceData } from '../../services/attendance.api';
 import { ResponseError } from '../../services/response-error';
 import { DateRangeInput } from '../Datepicker';
 import { getTodayTimerange } from './timeline.utils';
@@ -64,11 +64,35 @@ export const Search = memo(() => {
             try {
                 const dateStr = timerange[0].toFormat('yyyy-LL-dd');
                 console.log(`Polling check-in status for ID: ${activeId} on date: ${dateStr}`);
-                const records = await fetchCheckInData(activeId, dateStr);
+                const records = await fetchAttendanceData(activeId, dateStr);
+                console.log(`[ATTENDANCE API] fetched ${records.length} records:`, records);
 
                 const isToday = DateTime.now().hasSame(timerange[0], 'day');
                 if (isToday) {
-                    const isCheckedIn = records.some(entry => entry.checkInTime && !entry.checkOutTime);
+                    const isCheckedIn = records.some(entry => {
+                        const status = entry.status;
+                        const clockIn = entry.clockInTime;
+                        const clockOut = entry.clockOutTime;
+
+                        // 1. If status is Pending (e.g. forgotten checkout or hasn't checked in yet), do not track
+                        if (status === 'Pending') {
+                            console.log(`[ATTENDANCE CHECK] entry ${entry._id || entry.empId}: status is Pending -> false`);
+                            return false;
+                        }
+
+                        // 2. Check if a clock-in exists (not null, undefined, or string representation of null/undefined)
+                        const hasClockIn = clockIn && clockIn !== 'null' && clockIn !== 'undefined';
+
+                        // 3. Check if checkout is missing (empty or string "null" / null value)
+                        const hasNoClockOut = !clockOut || clockOut === 'null' || clockOut === 'undefined' || clockOut === '';
+
+                        const shouldTrack = (status === 'Present' || status === 'Absent') && hasClockIn && hasNoClockOut;
+                        console.log(`[ATTENDANCE CHECK] entry ${entry._id || entry.empId}: status=${status}, clockIn=${clockIn} (hasClockIn=${hasClockIn}), clockOut=${clockOut} (hasNoClockOut=${hasNoClockOut}) -> shouldTrack=${shouldTrack}`);
+
+                        // 4. Track if present/absent with clockIn but missing clockOut
+                        return shouldTrack;
+                    });
+
                     setLiveView(isCheckedIn);
                     saveCheckedInStatus(isCheckedIn);
                     
@@ -77,11 +101,16 @@ export const Search = memo(() => {
                     }
                 }
 
-                // Automatically set the visible range to checkInTime to checkInTime + 8 hours
-                const checkedInRecords = records.filter(entry => entry.checkInTime);
+                // Automatically set the visible range to clockInTime to clockInTime + 8 hours
+                const checkedInRecords = records.filter(entry => {
+                    const clockIn = entry.clockInTime;
+                    const isValid = clockIn && clockIn !== 'null' && clockIn !== 'undefined' && DateTime.fromISO(clockIn).isValid;
+                    console.log(`[ATTENDANCE VIEWPORT FILTER] entry ${entry._id || entry.empId}: clockIn=${clockIn} -> isValid=${isValid}`);
+                    return isValid;
+                });
                 if (checkedInRecords.length > 0) {
-                    checkedInRecords.sort((a, b) => new Date(a.checkInTime!).getTime() - new Date(b.checkInTime!).getTime());
-                    const earliestCheckInStr = checkedInRecords[0].checkInTime;
+                    checkedInRecords.sort((a, b) => new Date(a.clockInTime!).getTime() - new Date(b.clockInTime!).getTime());
+                    const earliestCheckInStr = checkedInRecords[0].clockInTime;
                     if (earliestCheckInStr) {
                         const checkInDt = DateTime.fromISO(earliestCheckInStr);
                         const endDt = checkInDt.plus({ hours: 8 });

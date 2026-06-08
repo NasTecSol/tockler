@@ -70,7 +70,12 @@ export const loadVisibleRange = (): DateTime[] | null => {
         }
 
         console.log('Loaded visible range from localStorage:', parsed);
-        return parsed.map((isoString) => DateTime.fromISO(isoString));
+        const range = parsed.map((isoString) => DateTime.fromISO(isoString));
+        if (range.some(dt => !dt.isValid)) {
+            console.error('Loaded visible range contains invalid DateTime objects');
+            return null;
+        }
+        return range;
     } catch (error) {
         console.error('Failed to load visible range from localStorage:', error);
         return null;
