@@ -37,7 +37,7 @@ mac:
 
 mas:
     entitlements: './build/entitlements.mas.plist'
-    entitlementsInherit: './build/entitlements.mas.plist'
+    entitlementsInherit: './build/entitlements.mas.inherit.plist'
     type: distribution
     provisioningProfile: embedded.provisionprofile
     #type: development
