@@ -16,17 +16,16 @@ export const setupMainHandler = (electronModule: any, availableActions: any, ena
             try {
                 const result = availableActions[actionName](...args);
                 if (isPromise(result)) {
-                    result.catch((e: any) => {
-                        //error in async code
-                        logger.error(e);
+                    try {
+                        return await result;
+                    } catch (e: any) {
+                        logger.error(`Async error in ${actionName}:`, e);
                         return { error: e.toString() };
-                    });
-
-                    return await result;
+                    }
                 }
                 return result;
             } catch (e: any) {
-                logger.error(e);
+                logger.error(`Sync error in ${actionName}:`, e);
                 return { error: e.toString() };
             }
         });

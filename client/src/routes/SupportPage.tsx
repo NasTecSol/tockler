@@ -100,7 +100,7 @@ export function SupportPage() {
                             leftIcon={<Icon as={FaGithub} />}
                             colorScheme="gray"
                             onClick={() =>
-                                window.electronBridge?.openUrlInExternalWindow('https://github.com/MayGo/tockler')
+                                window.electronBridge?.openUrlInExternalWindow('https://github.com/NasTecSol/tockler')
                             }
                         >
                             GitHub
@@ -110,7 +110,7 @@ export function SupportPage() {
                             leftIcon={<Icon as={FaDonate} />}
                             colorScheme="blue"
                             onClick={() =>
-                                window.electronBridge?.openUrlInExternalWindow('https://github.com/sponsors/MayGo')
+                                window.electronBridge?.openUrlInExternalWindow('https://github.com/sponsors/NasTecSol')
                             }
                         >
                             Donate

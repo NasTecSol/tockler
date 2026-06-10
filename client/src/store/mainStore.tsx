@@ -30,6 +30,9 @@ export interface StoreModel {
     liveView: boolean;
     setLiveView: Action<StoreModel, boolean>;
 
+    checkInTime: string | null;
+    setCheckInTime: Action<StoreModel, string | null>;
+
     isLoading: boolean;
     setIsLoading: Action<StoreModel, boolean>;
 
@@ -64,9 +67,14 @@ const mainStore = createStore<StoreModel>({
         state.selectedTimelineItem = payload;
     }),
 
-    liveView: true,
+    liveView: false,
     setLiveView: action((state, payload) => {
         state.liveView = payload;
+    }),
+
+    checkInTime: null,
+    setCheckInTime: action((state, payload) => {
+        state.checkInTime = payload;
     }),
 
     isLoading: false,
@@ -117,7 +125,7 @@ const mainStore = createStore<StoreModel>({
         const { timerange, visibleTimerange } = getState();
         Logger.debug('Loading timerange:', JSON.stringify(timerange));
         actions.setIsLoading(true);
-        const { appItems, statusItems, logItems } = await findAllDayItemsForEveryTrack(timerange[0], timerange[1]);
+        const { appItems = [], statusItems = [], logItems = [] } = (await findAllDayItemsForEveryTrack(timerange[0], timerange[1])) || {};
 
         const updatedTimeItems = {
             [TrackItemType.AppTrackItem]: appItems,
@@ -143,10 +151,10 @@ const mainStore = createStore<StoreModel>({
     bgSync: thunk(async (actions, requestFrom, { getState }) => {
         Logger.debug('Requesting from:', JSON.stringify(requestFrom));
         const { timeItems } = getState();
-        const { appItems, statusItems, logItems } = await findAllDayItemsForEveryTrack(
+        const { appItems = [], statusItems = [], logItems = [] } = (await findAllDayItemsForEveryTrack(
             requestFrom,
             requestFrom.endOf('day'),
-        );
+        )) || {};
         Logger.debug('Returned updated items:', appItems);
 
         const payload = {
@@ -158,13 +166,15 @@ const mainStore = createStore<StoreModel>({
         actions.setTimeItems(addToTimelineItems(timeItems, payload));
     }),
     bgSyncInterval: thunk(async (actions, _, { getState }) => {
-        const { isLoading, timerange, visibleTimerange, timerangeMode, lastRequestTime, liveView } = getState();
+        const { isLoading, timerange, visibleTimerange, timerangeMode, lastRequestTime, liveView, checkInTime } = getState();
         if (!isLoading) {
             if (timerangeMode === TIMERANGE_MODE_TODAY && liveView) {
                 actions.bgSync(lastRequestTime);
                 actions.setLastRequestTime(DateTime.now());
 
-                actions.setVisibleTimerange(getCenteredTimerange(timerange, visibleTimerange, lastRequestTime));
+                if (!checkInTime) {
+                    actions.setVisibleTimerange(getCenteredTimerange(timerange, visibleTimerange, lastRequestTime));
+                }
 
                 if (lastRequestTime.day !== timerange[1].day) {
                     Logger.debug('Day changed. Setting today as timerange.');

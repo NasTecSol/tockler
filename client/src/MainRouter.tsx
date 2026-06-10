@@ -3,6 +3,7 @@ import { StoreProvider } from 'easy-peasy';
 import { Settings } from 'luxon';
 import { useCallback, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthGate } from './auth/AuthGate';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { TrayLayout } from './components/TrayLayout/TrayLayout';
 import { Logger } from './logger';
@@ -45,9 +46,11 @@ export function MainRouter() {
                     <Route
                         path="/app/*"
                         element={
-                            <StoreProvider store={mainStore}>
-                                <MainAppPage />
-                            </StoreProvider>
+                            <AuthGate>
+                                <StoreProvider store={mainStore}>
+                                    <MainAppPage />
+                                </StoreProvider>
+                            </AuthGate>
                         }
                     />
 

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, like, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, like, lte, lt, sql } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { State } from '../../../enums/state';
 import { TrackItemType } from '../../../enums/track-item-type';
@@ -131,6 +131,23 @@ async function findAllDayItemsDb(from: string, to: string, taskName: string) {
     return data;
 }
 
+async function findAllDayItemsForAllTypesDb(from: string, to: string) {
+    console.log('findAllDayItemsForAllTypes', from, to);
+
+    const data = await db
+        .select()
+        .from(trackItems)
+        .where(
+            and(
+                gte(trackItems.endDate, new Date(from).getTime()),
+                lte(trackItems.endDate, new Date(to).getTime()),
+            ),
+        )
+        .orderBy(asc(trackItems.beginDate));
+
+    return data;
+}
+
 async function findFirstChunkLogItemsDb() {
     const items = await db
         .select({
@@ -220,6 +237,25 @@ async function findAllFromLastHoursDb(hours: number) {
     return items;
 }
 
+async function findItemsByIdGreaterThan(lastSyncedId: number, limitCount: number) {
+    return await db
+        .select()
+        .from(trackItems)
+        .where(gte(trackItems.id, lastSyncedId + 1))
+        .orderBy(asc(trackItems.id))
+        .limit(limitCount);
+}
+
+async function pruneSyncedItems(maxSyncedId: number, beforeTime: number) {
+    logger.debug('Pruning synced track items with id <=', maxSyncedId, 'and endDate <', beforeTime);
+    await db.delete(trackItems).where(
+        and(
+            lte(trackItems.id, maxSyncedId),
+            lt(trackItems.endDate, beforeTime)
+        )
+    );
+}
+
 export const trackItemService = {
     createTrackItem,
     updateTrackItemDb,
@@ -234,6 +270,9 @@ export const trackItemService = {
     deleteById,
     deleteByIds,
     findAllFromLastHoursDb,
+    findItemsByIdGreaterThan,
+    findAllDayItemsForAllTypesDb,
+    pruneSyncedItems,
 };
 
 export type TrackItemService = typeof trackItemService;

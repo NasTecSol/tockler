@@ -1,7 +1,6 @@
-import { Flex, Box, Center, Link } from '@chakra-ui/react';
+import { Flex, Box, Link, Image } from '@chakra-ui/react';
 import { useColorModeValue } from '@chakra-ui/react';
-import { TocklerLogo } from './TocklerLogo';
-import { TocklerLogoText } from './TocklerLogoText';
+import logoNassHR from '../../assets/icons/logoNassHR.png';
 
 export const Header = ({ children, brandLinkProps }) => (
     <Flex
@@ -17,13 +16,13 @@ export const Header = ({ children, brandLinkProps }) => (
     >
         <Box pl={4} pr={3}>
             <Link {...brandLinkProps} _hover={{ textDecoration: 'none' }}>
-                <Flex>
-                    <Center pr={3}>
-                        <TocklerLogo boxSize="28px" />
-                    </Center>
-                    <Box pt="3px">
-                        <TocklerLogoText />
-                    </Box>
+                <Flex align="center">
+                    <Image
+                        src={logoNassHR}
+                        alt="Nass HR Logo"
+                        h="28px"
+                        objectFit="contain"
+                    />
                 </Flex>
             </Link>
         </Box>

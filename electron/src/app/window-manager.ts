@@ -163,7 +163,7 @@ export default class WindowManager {
             show: true,
             webPreferences: commonWebPreferences,
             backgroundColor: '#ffffff',
-            title: 'Tockler',
+            title: 'NOVA',
             icon: config.iconWindow,
         });
 
@@ -442,6 +442,11 @@ export default class WindowManager {
     }
 
     static setTrayWindow() {
+        if (this.menubar || this.tray) {
+            logger.debug('Tray window already exists, skipping creation.');
+            return;
+        }
+
         logger.debug('Creating tray window.');
 
         this.tray = new Tray(config.iconTray);
@@ -495,10 +500,24 @@ export default class WindowManager {
             const trayIconWithColor = getNativeTrayIcon(config.iconTray);
 
             if (this.tray && trayIconWithColor) {
-                this.tray.setToolTip('Tockler');
+                this.tray.setToolTip('NOVA');
                 this.tray.setImage(trayIconWithColor);
             }
         });
+    }
+
+    static destroyTrayWindow() {
+        logger.debug('Destroying tray window.');
+        if (this.menubar) {
+            if (this.menubar.window) {
+                this.menubar.window.close();
+            }
+            this.menubar = null;
+        }
+        if (this.tray) {
+            this.tray.destroy();
+            this.tray = null;
+        }
     }
 
     static setNotificationWindow() {

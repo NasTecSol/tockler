@@ -3,12 +3,14 @@ import '../../types/electron-bridge';
 import { AnalyserForm } from './AnalyserForm';
 import { AppForm } from './AppForm';
 import { AppVersion } from './AppVersion';
+import { AccountSection } from './AccountSection';
 import { DataForm } from './DataForm';
 import { WorkForm } from './WorkForm';
 
 export const SettingsForm = () => {
     return (
         <VStack spacing={4} p={4} alignItems="flex-start" width="100%">
+            <AccountSection />
             <WorkForm />
             <DataForm />
             <AppForm />
