@@ -18,26 +18,25 @@ publish:
     - github
 
 mac:
-    category: public.app-category.productivity
-    hardenedRuntime: true
-    gatekeeperAssess: false
-    icon: build/icon.icns
-    entitlements: './build/entitlements.mac.plist'
-    entitlementsInherit: 'build/entitlements.mac.plist'
-    asarUnpack: '**/*.node'
-    darkModeSupport: true
-    electronUpdaterCompatibility: '>=2.16.0'
-    extendInfo:
-        LSUIElement: 1
-    compression: 'maximum'
-    electronLanguages: ['en']
-    target:
-        - target: dmg
-        - target: zip
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+afterSign: notarize.js
 
 mas:
     entitlements: './build/entitlements.mas.plist'
-    entitlementsInherit: './build/entitlements.mas.plist'
+    entitlementsInherit: './build/entitlements.mas.inherit.plist'
     type: distribution
     provisioningProfile: embedded.provisionprofile
     #type: development
