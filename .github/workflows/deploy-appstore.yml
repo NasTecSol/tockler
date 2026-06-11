@@ -1,6 +1,9 @@
 name: Deploy to Mac App Store
 
 on:
+  push:
+    branches:
+      - deployment
   release:
     types: [published]
   workflow_dispatch:
