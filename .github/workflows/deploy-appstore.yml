@@ -8,6 +8,10 @@ on:
     types: [published]
   workflow_dispatch:
 
+# Fix Node.js 24 deprecation warning for all actions
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,24 +30,40 @@ jobs:
             arch: arm64
 
     steps:
+      # ─────────────────────────────────────────
+      # 1. Checkout
+      # ─────────────────────────────────────────
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # ─────────────────────────────────────────
+      # 2. Node.js Setup
+      # ─────────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
 
+      # ─────────────────────────────────────────
+      # 3. pnpm Setup (v4 fixes Node.js 24 warning)
+      # ─────────────────────────────────────────
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 9
           run_install: false
 
+      # ─────────────────────────────────────────
+      # 4. Get App Version
+      # ─────────────────────────────────────────
       - name: Get Package Version
         shell: bash
-        run: echo "PACKAGE_VERSION=$(node -p -e "require('./electron/package.json').version")" >> $GITHUB_ENV
+        run: |
+          echo "PACKAGE_VERSION=$(node -p -e "require('./electron/package.json').version")" >> $GITHUB_ENV
 
+      # ─────────────────────────────────────────
+      # 5. Python Setup (required for native modules)
+      # ─────────────────────────────────────────
       - name: Install Python Setuptools on MacOS-13
         if: matrix.os == 'macos-13'
         run: |
@@ -55,6 +75,9 @@ jobs:
         if: startsWith(matrix.os, 'macos') && matrix.os != 'macos-13'
         run: brew install python-setuptools
 
+      # ─────────────────────────────────────────
+      # 6. node-gyp config for MacOS-13
+      # ─────────────────────────────────────────
       - name: Configure node-gyp for MacOS-13
         if: matrix.os == 'macos-13'
         run: |
@@ -64,6 +87,9 @@ jobs:
           echo "npm_config_python=python3" >> .npmrc
           cd ..
 
+      # ─────────────────────────────────────────
+      # 7. Install Dependencies
+      # ─────────────────────────────────────────
       - name: Install Dependencies (Electron)
         shell: bash
         run: |
@@ -81,6 +107,9 @@ jobs:
           pnpm install
           cd ..
 
+      # ─────────────────────────────────────────
+      # 8. Build Client (Vite)
+      # ─────────────────────────────────────────
       - name: Build Client
         env:
           VITE_TEMPLATE_ID: ${{ secrets.VITE_TEMPLATE_ID }}
@@ -91,6 +120,9 @@ jobs:
           pnpm build
           cd ..
 
+      # ─────────────────────────────────────────
+      # 9. Create Electron .env
+      # ─────────────────────────────────────────
       - name: Create .env file
         shell: bash
         run: |
@@ -98,19 +130,30 @@ jobs:
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           cd ..
 
+      # ─────────────────────────────────────────
+      # 10. Import Apple Certificates
+      #     FIX: p12-file-base64 uses secret (not hardcoded)
+      #     FIX: pnpm action updated to v4
+      # ─────────────────────────────────────────
       - name: Import Apple Certificates
         uses: apple-actions/import-codesign-certs@v3
         with:
-          # ✅ Using secret, not hardcoded value
           p12-file-base64: ${{ secrets.APPSTORE_P12_CERT }}
           p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
 
+      # ─────────────────────────────────────────
+      # 11. Import Provisioning Profile
+      #     FIX: uses secret (not hardcoded expired value)
+      # ─────────────────────────────────────────
       - name: Import Provisioning Profile
         run: |
-          # ✅ Using secret, not hardcoded expired value
-          echo "${{ secrets.APPSTORE_PROVISIONING_PROFILE }}" | base64 --decode \
-            > electron/embedded.provisionprofile
+          echo "${{ secrets.APPSTORE_PROVISIONING_PROFILE }}" \
+            | base64 --decode > electron/embedded.provisionprofile
+          echo "Provisioning profile imported successfully"
 
+      # ─────────────────────────────────────────
+      # 12. Build Electron App for Mac App Store
+      # ─────────────────────────────────────────
       - name: Build and Package Electron App (MAS)
         shell: bash
         env:
@@ -119,36 +162,70 @@ jobs:
         run: |
           cd electron
           export ELECTRON_BUILDER_SILENT=true
+
+          # Compile TypeScript + Vite
           pnpm build
+
+          # Copy client dist into electron
           pnpm prepare_client
+
+          # Build Mac App Store .pkg
           pnpm release --mac mas --${{ matrix.arch }}
+
+          echo "=== Build output ==="
+          ls -la packaged/ || echo "No packaged folder found"
           cd ..
 
+      # ─────────────────────────────────────────
+      # 13. Upload to App Store Connect
+      #     FIX: uses APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD
+      #     (no API keys needed for individual accounts)
+      # ─────────────────────────────────────────
       - name: Upload to App Store Connect
-        # ✅ Using APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD (no API keys needed)
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
+          # Find the generated .pkg file
           PKG_PATH=$(find electron/packaged -name "*.pkg" | head -n 1)
+
           if [ -z "$PKG_PATH" ]; then
-            echo "Error: No .pkg file found in electron/packaged"
+            echo "❌ Error: No .pkg file found in electron/packaged"
+            echo "Contents of electron/packaged:"
+            ls -la electron/packaged/ || echo "Folder does not exist"
             exit 1
           fi
-          echo "Found package: $PKG_PATH"
 
-          echo "Validating..."
+          echo "✅ Found package: $PKG_PATH"
+
+          # Validate before uploading
+          echo "Validating package..."
           xcrun altool --validate-app \
             -f "$PKG_PATH" \
             -t macos \
             -u "$APPLE_ID" \
-            -p "$APPLE_APP_SPECIFIC_PASSWORD"
+            -p "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format xml
 
+          # Upload to App Store Connect
           echo "Uploading to App Store Connect..."
           xcrun altool --upload-app \
             -f "$PKG_PATH" \
             -t macos \
             -u "$APPLE_ID" \
-            -p "$APPLE_APP_SPECIFIC_PASSWORD"
+            -p "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format xml
 
-          echo "Upload complete!"
+          echo "✅ Upload complete!"
+
+      # ─────────────────────────────────────────
+      # 14. Upload build artifacts to GitHub
+      # ─────────────────────────────────────────
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mas-build-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            electron/packaged/*.pkg
+          retention-days: 7
