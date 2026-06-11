@@ -2,7 +2,7 @@ name: Build
 on:
     push:
         branches:
-            - master
+            - deployment
     pull_request:
         types: [opened, synchronize, reopened]
 
@@ -26,7 +26,7 @@ jobs:
                   node-version: 22.x
 
             - name: Install pnpm
-              uses: pnpm/action-setup@v2
+              uses: pnpm/action-setup@v4
               with:
                   version: 9
                   run_install: false
@@ -101,7 +101,7 @@ jobs:
                   node-version: ${{ matrix.node-version }}
 
             - name: Install pnpm
-              uses: pnpm/action-setup@v2
+              uses: pnpm/action-setup@v4
               with:
                   version: 9
                   run_install: false

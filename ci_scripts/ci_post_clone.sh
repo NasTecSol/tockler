@@ -1,9 +1,15 @@
 #!/bin/sh
 set -e
 
-echo "=== Installing Homebrew ==="
-# Add NONINTERACTIVE=1 to prevent it from hanging waiting for input
+# Install Homebrew non-interactively
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Add Homebrew to PATH for Apple Silicon
+if [[ $(uname -m) == 'arm64' ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
 
 echo "=== Installing Node.js ==="
 brew install node
@@ -11,18 +17,15 @@ brew install node
 echo "=== Installing pnpm ==="
 npm install -g pnpm
 
-echo "=== Building Client (Vite) ==="
+echo "=== Building Client ==="
 cd $CI_PRIMARY_REPOSITORY_PATH/client
 pnpm install
-pnpm run build
+pnpm build
 
-echo "=== Installing Electron deps ==="
+echo "=== Building Electron ==="
 cd $CI_PRIMARY_REPOSITORY_PATH/electron
 pnpm install
+pnpm build
+pnpm prepare_client
 
-# ✅ ADD THIS — compiles TypeScript before packaging
-echo "=== Compiling Electron TypeScript ==="
-pnpm run build
-
-echo "=== Copying client dist to electron ==="
-pnpm run prepare_client
+echo "=== Done ==="
