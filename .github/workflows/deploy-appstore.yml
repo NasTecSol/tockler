@@ -8,7 +8,6 @@ on:
         types: [published]
     workflow_dispatch:
 
-# Fix Node.js 24 deprecation warning
 env:
     FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -104,12 +103,6 @@ jobs:
                   echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
                   cd ..
 
-            # ─────────────────────────────────────────
-            # FIX: Manual cert import
-            # APPSTORE_P12_CERT must be
-            # "Mac App Distribution" certificate
-            # NOT "Developer ID Application"
-            # ─────────────────────────────────────────
             - name: Import Apple Certificate
               env:
                   P12_CERT_BASE64: ${{ secrets.APPSTORE_P12_CERT }}
@@ -151,12 +144,6 @@ jobs:
                     | base64 --decode > electron/embedded.provisionprofile
                   echo "Provisioning profile imported"
 
-            # ─────────────────────────────────────────
-            # FIX 1: pnpm release -- --mac mas
-            #        (-- required to pass 'mas' correctly)
-            # FIX 2: Pass Apple env vars so notarize.js
-            #        can detect and skip MAS builds
-            # ─────────────────────────────────────────
             - name: Build Electron App (MAS)
               shell: bash
               env:
@@ -172,9 +159,8 @@ jobs:
                   pnpm build
                   pnpm prepare_client
 
-                  # FIX: -- is required so pnpm correctly
-                  # passes 'mas' target to electron-builder
-                  pnpm release -- --mac mas --${{ matrix.arch }}
+                  echo "=== Building MAS package (no publish) ==="
+                  npx electron-builder -c electron-builder.yml --mac mas --${{ matrix.arch }} --publish never
 
                   echo "=== Build output ==="
                   ls -la packaged/ || echo "packaged folder not found"
