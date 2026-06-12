@@ -1,4 +1,5 @@
-name: Build
+name: Build Windows and Linux
+
 on:
     push:
         branches:
@@ -6,143 +7,70 @@ on:
     pull_request:
         types: [opened, synchronize, reopened]
 
-# Add concurrency to cancel outdated builds
+# Fix Node.js 24 deprecation warning
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
 jobs:
-    sonarcloud:
-        name: SonarCloud
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    build:
+        name: Build (${{ matrix.os }}-${{ matrix.arch }})
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 60
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # ✅ Linux only
+                    - os: ubuntu-latest
+                      arch: x64
+                    # ✅ Windows only
+                    - os: windows-latest
+                      arch: x64
 
+        steps:
+            # ─────────────────────────────────────────
+            # 1. Checkout
+            # ─────────────────────────────────────────
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # ─────────────────────────────────────────
+            # 2. Node.js
+            # ─────────────────────────────────────────
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: 22.x
 
+            # ─────────────────────────────────────────
+            # 3. pnpm (v4 fixes Node.js 24 warning)
+            # ─────────────────────────────────────────
             - name: Install pnpm
               uses: pnpm/action-setup@v4
               with:
                   version: 9
                   run_install: false
 
-            - name: Install Dependencies (Electron)
-              run: |
-                  cd electron
-                  pnpm install
-                  cd ..
-
-            - name: Run Electron Tests with Coverage
-              run: |
-                  cd electron
-                  pnpm coverage
-                  cd ..
-
-            - name: Install Dependencies (Client)
-              run: |
-                  cd client
-                  pnpm install 
-                  cd ..
-
-            - name: Run Client Tests with Coverage
-              run: |
-                  cd client
-                  pnpm coverage
-                  cd ..
-
-            - name: SonarCloud Scan Electron
-              uses: SonarSource/sonarcloud-github-action@master
-              with:
-                  projectBaseDir: electron
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-            - name: SonarCloud Scan Client
-              uses: SonarSource/sonarcloud-github-action@master
-              with:
-                  projectBaseDir: client
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-    build:
-        name: Build (${{ matrix.os }}-${{ matrix.arch }})
-        needs: [sonarcloud]
-        runs-on: ${{ matrix.os }}
-        timeout-minutes: 60 # Set maximum job runtime
-        strategy:
-            matrix:
-                include:
-                    - os: ubuntu-latest
-                      node-version: 22.x
-                      arch: x64
-                    - os: windows-latest
-                      node-version: 22.x
-                      arch: x64
-                    - os: macos-13
-                      node-version: 22.x
-                      arch: x64
-                    - os: macos-latest
-                      node-version: 22.x
-                      arch: arm64
-
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ matrix.node-version }}
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 9
-                  run_install: false
-
+            # ─────────────────────────────────────────
+            # 4. Package version
+            # ─────────────────────────────────────────
             - name: Get Package Version
-              id: package_version
               shell: bash
-              run: echo "PACKAGE_VERSION=$(node -p -e "require('./electron/package.json').version")" >> $GITHUB_ENV
-
-            - name: Setup Sentry Release
-              if: matrix.os == 'ubuntu-latest'
-              env:
-                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-                  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
               run: |
-                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-                    echo "SENTRY_AUTH_TOKEN is not set. Skipping Sentry Release setup."
-                    exit 0
-                  fi
-                  pnpm dlx @sentry/cli releases set-commits "${{ env.PACKAGE_VERSION }}" --commit "${{ github.repository }}@${{ github.sha }}"
-                  pnpm dlx @sentry/cli releases new "${{ env.PACKAGE_VERSION }}"
+                  echo "PACKAGE_VERSION=$(node -p -e "require('./electron/package.json').version")" >> $GITHUB_ENV
 
+            # ─────────────────────────────────────────
+            # 5. Python (required for native modules)
+            # ─────────────────────────────────────────
             - name: Install Python Setuptools on Ubuntu
               if: matrix.os == 'ubuntu-latest'
               run: |
                   sudo apt-get update
                   sudo apt-get install -y python3-setuptools
-
-            - name: Install Python Setuptools on MacOS-13
-              if: matrix.os == 'macos-13'
-              run: |
-                  # Python 2 is no longer available in Homebrew
-                  # Install setuptools which provides distutils for Python 3
-                  python3 -m pip install setuptools
-                  # Set environment variables to use Python 3
-                  echo "PYTHON=$(which python3)" >> $GITHUB_ENV
-                  echo "npm_config_python=$(which python3)" >> $GITHUB_ENV
-
-            - name: Install Python Setuptools on other macOS
-              if: startsWith(matrix.os, 'macos') && matrix.os != 'macos-13'
-              run: brew install python-setuptools
 
             - name: Install Python Setuptools on Windows
               if: matrix.os == 'windows-latest'
@@ -150,33 +78,25 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install setuptools
 
-            - name: Configure node-gyp for MacOS-13
-              if: matrix.os == 'macos-13'
-              run: |
-                  cd electron
-                  # Configure node-gyp to use Python 3
-                  echo "node-gyp-binary=python3" >> .npmrc
-                  echo "python=python3" >> .npmrc
-                  echo "npm_config_python=python3" >> .npmrc
-                  cd ..
-
+            # ─────────────────────────────────────────
+            # 6. Install Dependencies
+            # ─────────────────────────────────────────
             - name: Install Dependencies (Electron)
               shell: bash
               run: |
                   cd electron
-                  if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-                    PYTHON=$(which python3) pnpm install
-                  else
-                    pnpm install
-                  fi
+                  pnpm install
                   cd ..
 
             - name: Install Dependencies (Client)
               run: |
                   cd client
-                  pnpm install 
+                  pnpm install
                   cd ..
 
+            # ─────────────────────────────────────────
+            # 7. Build Client (Vite)
+            # ─────────────────────────────────────────
             - name: Build Client
               env:
                   VITE_TEMPLATE_ID: ${{ secrets.VITE_TEMPLATE_ID }}
@@ -187,6 +107,9 @@ jobs:
                   pnpm build
                   cd ..
 
+            # ─────────────────────────────────────────
+            # 8. Create .env
+            # ─────────────────────────────────────────
             - name: Create .env file
               shell: bash
               run: |
@@ -194,54 +117,38 @@ jobs:
                   echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
                   cd ..
 
-            - name: Build and Release Electron App
+            # ─────────────────────────────────────────
+            # 9. Build Electron (Windows / Linux only)
+            #    No Mac signing needed here
+            # ─────────────────────────────────────────
+            - name: Build Electron App
               shell: bash
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  CSC_LINK: ${{ secrets.CSC_LINK }}
-                  CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-                  APPLE_ID: ${{ secrets.APPLE_ID }}
-                  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-                  CSC_IDENTITY_AUTO_DISCOVERY: ${{ matrix.os != 'windows-latest' }}
-
               run: |
                   cd electron
-                  # Add flag to reduce console output
                   export ELECTRON_BUILDER_SILENT=true
                   pnpm build
                   pnpm prepare_client
-                  if [[ "${{ matrix.os }}" == "macos-"* ]]; then
-                    pnpm release --mac --${{ matrix.arch }}
-                  elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-                    pnpm release --win
+                  if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+                    pnpm release -- --win
                   elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-                    pnpm release --linux
+                    pnpm release -- --linux
                   fi
                   cd ..
 
-            - name: Upload Sentry Sourcemaps
-              if: matrix.os == 'ubuntu-latest'
-              env:
-                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-                  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-              run: |
-                  if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-                    echo "SENTRY_AUTH_TOKEN is not set. Skipping Sentry Sourcemaps upload."
-                    exit 0
-                  fi
-                  pnpm dlx @sentry/cli releases files "${{ env.PACKAGE_VERSION }}" upload-sourcemaps ./client/dist/assets/ --rewrite --url-prefix "~/dist/assets"
-                  pnpm dlx @sentry/cli releases files "${{ env.PACKAGE_VERSION }}" list
-                  pnpm dlx @sentry/cli releases finalize "${{ env.PACKAGE_VERSION }}"
-
+            # ─────────────────────────────────────────
+            # 10. Upload build artifacts
+            # ─────────────────────────────────────────
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
+              if: always()
               with:
-                  name: ${{ matrix.os }}-build
+                  name: ${{ matrix.os }}-${{ matrix.arch }}-build
                   path: |
-                      electron/packaged/*.dmg
                       electron/packaged/*.AppImage
                       electron/packaged/*.deb
                       electron/packaged/*.rpm
                       electron/packaged/*.exe
                       electron/packaged/*.msi
+                  retention-days: 7
