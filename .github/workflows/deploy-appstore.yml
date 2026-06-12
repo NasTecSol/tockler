@@ -174,7 +174,7 @@ jobs:
 
                   # FIX: -- is required so pnpm correctly
                   # passes 'mas' target to electron-builder
-                  npx electron-builder -c electron-builder.yml --mac mas --${{ matrix.arch }}
+                  pnpm release -- --mac mas --${{ matrix.arch }}
 
                   echo "=== Build output ==="
                   ls -la packaged/ || echo "packaged folder not found"
