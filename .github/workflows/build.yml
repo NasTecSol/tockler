@@ -6,6 +6,8 @@ on:
             - deployment
     pull_request:
         types: [opened, synchronize, reopened]
+        branches:
+            - deployment
 
 # Fix Node.js 24 deprecation warning
 env:
