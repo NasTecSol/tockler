@@ -1,4 +1,4 @@
-appId: 'ee.trimatech.nova'
+appId: 'com.nastecsol.nova'
 productName: 'Nova'
 asar: false
 asarUnpack:
@@ -24,6 +24,10 @@ mac:
         - x64
         - arm64
     - target: zip
+      arch:
+        - x64
+        - arm64
+    - target: pkg
       arch:
         - x64
         - arm64
