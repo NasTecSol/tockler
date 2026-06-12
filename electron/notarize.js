@@ -3,8 +3,14 @@ const { notarize } = require('@electron/notarize');
 const { join } = require('path');
 const { existsSync } = require('fs');
 
-exports.default = async function notarizing(params) {
-    const { electronPlatformName } = params;
+exports.default = async function notarizing(context) {
+    const { electronPlatformName, arch } = context;
+
+    
+    if (context.packager.platform.nodeName === 'mas' || process.env.IS_MAS_BUILD) {
+    console.log('Skipping notarization for MAS build');
+    return;
+  }
 
     // ─────────────────────────────────────────
     // Skip: non-macOS builds
