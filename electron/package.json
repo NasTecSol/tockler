@@ -11,6 +11,12 @@
         "url": "git@github.com:NasTecSol/tockler.git"
     },
     "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "active-win",
+            "electron",
+            "esbuild"
+        ],
         "supportedArchitectures": {
             "os": [
                 "win32",
@@ -37,6 +43,9 @@
         "____pre____": "",
         "postinstall": "electron-builder install-app-deps",
         "build_mac": "electron-builder -c electron-builder.yml --mac",
+        "build_mas": "electron-builder -c electron-builder.yml --mac mas",
+        "package_mas": "productbuild --component packaged/mas-arm64/Nova.app /Applications --sign '3rd Party Mac Developer Installer: Danial Ayoob (4Y49KAWKZE)' packaged/Nova-4.0.24-mas-arm64.pkg",
+        "build_appstore": "bash build-mas.sh",
         "build_linux": "electron-builder -c electron-builder.yml --linux",
         "build_windows": "electron-builder -c electron-builder.yml --win",
         "prepare_client": "cpx \"../client/dist/**/*\" dist-electron",
