@@ -1,9 +1,12 @@
 appId: 'com.nastecsol.nova'
 productName: 'Nova'
-asar: false
+buildVersion: '4.0.29'
+asar: true
 asarUnpack:
     - scripts
     - shared
+    - '**/node_modules/better-sqlite3/**'
+    - '**/node_modules/active-win/**'
 
 npmRebuild: false
 
@@ -32,6 +35,7 @@ mac:
   entitlements: build/entitlement.mac.plist
   entitlementsInherit: build/entitlement.mac.plist
   minimumSystemVersion: '12.0'
+  x64ArchFiles: '{**/node_modules/**/*.node,**/node_modules/active-win/main}'
 
 afterSign: notarize.js
 
@@ -44,7 +48,7 @@ mas:
     target:
         - target: mas
           arch:
-              - arm64
+              - universal
 
 win:
     artifactName: ${name}-${version}-portable-${os}-${arch}.${ext}

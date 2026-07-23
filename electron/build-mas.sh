@@ -2,36 +2,47 @@
 set -e
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Build Nova for Mac App Store and package it as a .pkg for Transporter upload
+# Build Nova for Mac App Store (Universal Binary: arm64 + x64)
+# Automatically builds Frontend (client) + Backend (electron) + Packages .pkg
 # ─────────────────────────────────────────────────────────────────────────────
 
 APP_NAME="Nova"
 VERSION=$(node -p "require('./package.json').version")
-APP_BUNDLE="packaged/mas-arm64/${APP_NAME}.app"
-PKG_OUTPUT="packaged/${APP_NAME}-${VERSION}-mas-arm64.pkg"
+APP_BUNDLE="packaged/mas-universal/${APP_NAME}.app"
+PKG_OUTPUT="packaged/${APP_NAME}-${VERSION}-mas-universal.pkg"
 INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Danial Ayoob (4Y49KAWKZE)"
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║   Building Nova ${VERSION} for Mac App Store         ║"
+echo "║   Building Nova ${VERSION} (Frontend + Backend)       ║"
+echo "║   Mac App Store Universal Binary (arm64 + x86_64)   ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
 
-# Step 1: Build and sign the MAS app bundle with electron-builder
-echo "▶ Step 1/2: Building and signing the MAS app bundle..."
-npx electron-builder -c electron-builder.yml --mac mas
+# Step 1: Clean previous builds
+echo "▶ Step 1/5: Cleaning previous builds..."
+rm -rf packaged/*
+
+# Step 2: Build Frontend Client
+echo "▶ Step 2/5: Building Frontend Client (React/Vite)..."
+(cd ../client && pnpm build)
+
+# Step 3: Copy Frontend into Electron and Compile Electron Backend
+echo "▶ Step 3/5: Copying Frontend into Electron & Compiling Backend..."
+pnpm prepare_client
+pnpm build
+
+# Step 4: Build and sign Universal MAS App Bundle
+echo "▶ Step 4/5: Packaging Universal MAS App Bundle..."
+npx electron-builder -c electron-builder.yml --mac mas --universal
 
 if [ ! -d "$APP_BUNDLE" ]; then
     echo "❌ Error: App bundle not found at ${APP_BUNDLE}"
     exit 1
 fi
 
-echo "✅ App bundle built and signed: ${APP_BUNDLE}"
-echo ""
-
-# Step 2: Package the MAS-signed .app into a .pkg using Apple's productbuild
-# This is the ONLY correct way to create a .pkg for Transporter from a MAS build.
-echo "▶ Step 2/2: Creating .pkg installer for Transporter..."
+# Step 5: Package into signed .pkg for Transporter
+echo "▶ Step 5/5: Creating Universal .pkg installer for Transporter..."
 productbuild \
     --component "${APP_BUNDLE}" /Applications \
     --sign "${INSTALLER_IDENTITY}" \
@@ -46,11 +57,12 @@ PKG_SIZE=$(du -sh "${PKG_OUTPUT}" | cut -f1)
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║   ✅ BUILD COMPLETE                                  ║"
+echo "║   ✅ BUILD COMPLETE (FRONTEND + BACKEND INCLUDED)    ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
 echo "  Package: ${PKG_OUTPUT}"
 echo "  Size:    ${PKG_SIZE}"
+echo "  Archs:   arm64 (Apple Silicon) + x86_64 (Intel)"
 echo ""
 echo "  Upload this file to App Store Connect via Transporter:"
 echo "  $(pwd)/${PKG_OUTPUT}"

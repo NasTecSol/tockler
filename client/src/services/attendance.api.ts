@@ -25,7 +25,7 @@ export async function fetchAttendanceData(empDbId: string, dateStr: string): Pro
         throw new Error(`Missing tenant ID or token (tenant: ${tenant}, token: ${token ? 'present' : 'missing'})`);
     }
 
-    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL || 'https://www.nashrms.com';
     const url = `${backendUrl}/api/c-emp-attendance/getDataByEmployeeId/${encodeURIComponent(empDbId)}/${dateStr}/${dateStr}?page=0&limit=50`;
 
     const response = await fetch(url, {
