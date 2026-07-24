@@ -2,19 +2,19 @@
 set -e
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Build Nova for Mac App Store (Universal Binary: arm64 + x64)
+# Build NasHR Nova for Mac App Store (Universal Binary: arm64 + x64)
 # Automatically builds Frontend (client) + Backend (electron) + Packages .pkg
 # ─────────────────────────────────────────────────────────────────────────────
 
-APP_NAME="Nova"
+APP_NAME="NasHR Nova"
 VERSION=$(node -p "require('./package.json').version")
 APP_BUNDLE="packaged/mas-universal/${APP_NAME}.app"
-PKG_OUTPUT="packaged/${APP_NAME}-${VERSION}-mas-universal.pkg"
+PKG_OUTPUT="packaged/NasHR_Nova-${VERSION}-mas-universal.pkg"
 INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Danial Ayoob (4Y49KAWKZE)"
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║   Building Nova ${VERSION} (Frontend + Backend)       ║"
+echo "║   Building ${APP_NAME} ${VERSION}                     ║"
 echo "║   Mac App Store Universal Binary (arm64 + x86_64)   ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
@@ -38,6 +38,8 @@ npx electron-builder -c electron-builder.yml --mac mas --universal
 
 if [ ! -d "$APP_BUNDLE" ]; then
     echo "❌ Error: App bundle not found at ${APP_BUNDLE}"
+    echo "   Available files in packaged/:"
+    ls -la packaged/ packaged/mas-universal/ 2>/dev/null || true
     exit 1
 fi
 
