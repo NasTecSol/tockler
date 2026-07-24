@@ -31,7 +31,7 @@ exports.default = async function notarizing(context) {
     // ─────────────────────────────────────────
     // Skip: local builds
     // ─────────────────────────────────────────
-    if (params.packager.config.extraMetadata?.local_build) {
+    if (context.packager.config.extraMetadata?.local_build) {
         console.log('Skipping notarization: local build');
         return;
     }
@@ -41,7 +41,7 @@ exports.default = async function notarizing(context) {
     // MAS builds do NOT need notarization.
     // Apple handles verification on their side.
     // ─────────────────────────────────────────
-    const appOutDir = params.appOutDir || '';
+    const appOutDir = context.appOutDir || '';
     if (appOutDir.includes('mas') || appOutDir.includes('-mas-')) {
         console.log('Skipping notarization: Mac App Store build (MAS)');
         return;
@@ -58,10 +58,10 @@ exports.default = async function notarizing(context) {
     // ─────────────────────────────────────────
     // FIX: Use appInfo.id not appInfo.appId
     // ─────────────────────────────────────────
-    const appBundleId = params.packager.appInfo.id;
+    const appBundleId = context.packager.appInfo.id;
     const appPath = join(
-        params.appOutDir,
-        `${params.packager.appInfo.productFilename}.app`
+        context.appOutDir,
+        `${context.packager.appInfo.productFilename}.app`
     );
 
     console.log('App Path:', appPath);

@@ -16,7 +16,7 @@ export interface TenantResponse {
  * Fetches organization tenancy details by domain name or tenant ID/subdomain.
  */
 export async function fetchTenantIdFromDomain(query: string): Promise<TenantDetails> {
-    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL || 'https://dev.nashrms.com';
+    const backendUrl = import.meta.env.VITE_HR_BACKEND_URL || 'https://www.nashrms.com';
     const trimmed = query.trim();
     const isNum = /^\d+$/.test(trimmed);
     const paramName = isNum ? 'tenantId' : 'tenantName';
