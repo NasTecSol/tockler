@@ -1,6 +1,6 @@
 appId: 'com.nastecsol.nova'
 productName: 'NasHR Nova'
-buildVersion: '4.0.31'
+buildVersion: '4.0.33'
 asar: true
 asarUnpack:
     - scripts
