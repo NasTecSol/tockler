@@ -62,6 +62,14 @@ export default class AppManager {
     }
 
     static setOpenAtLogin() {
+        if (process.platform === 'darwin') {
+            logger.debug('Disabling openAtLogin on macOS per App Store Guideline 2.4.5');
+            app.setLoginItemSettings({
+                openAtLogin: false,
+            });
+            return;
+        }
+
         let openAtLogin = config.persisted.get('openAtLogin');
 
         const firstTime = typeof openAtLogin === 'undefined';

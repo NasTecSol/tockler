@@ -74,12 +74,14 @@ export const AppForm = () => {
                     size="lg"
                 />
             </FormControl>
-            <FormControl display="flex" alignItems="center" py={2}>
-                <FormLabel htmlFor="run-login" mb="0" flex="1">
-                    Run at login?
-                </FormLabel>
-                <Switch id="run-login" defaultChecked={openAtLogin} onChange={onChangeOpenAtLogin} size="lg" />
-            </FormControl>
+            {!isMacOS && (
+                <FormControl display="flex" alignItems="center" py={2}>
+                    <FormLabel htmlFor="run-login" mb="0" flex="1">
+                        Run at login?
+                    </FormLabel>
+                    <Switch id="run-login" defaultChecked={openAtLogin} onChange={onChangeOpenAtLogin} size="lg" />
+                </FormControl>
+            )}
             <FormControl display="flex" alignItems="center" py={2}>
                 <FormLabel htmlFor="auto-update" mb="0" flex="1">
                     Auto update?
